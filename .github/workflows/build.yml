@@ -1,0 +1,40 @@
+name: Rebuild site data from feed
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-feed
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Pull feed and rebuild JSON
+        run: python3 build_feed.py
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name  "feed-bot"
+          git config user.email "feed-bot@users.noreply.github.com"
+          if [ -n "$(git status --porcelain data)" ]; then
+            git add data
+            git commit -m "Refresh episode data ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+            git push
+          else
+            echo "Feed unchanged - nothing to commit."
+          fi
