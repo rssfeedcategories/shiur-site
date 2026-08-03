@@ -46,6 +46,8 @@ CHELEK_RE = re.compile(r"חלק\s+([^\s\-\u2013\u05be]+)")
 
 # A section needs at least this many episodes to exist on its own
 MIN_PART = 3
+# Label for episodes in a split category that name no section
+LEFTOVER = "שיעורים נוספים"
 # Strip geresh / gershayim so "חלק ד" and "חלק ד'" are the same section
 GERESH = str.maketrans("", "", "'\"\u05f3\u05f4\u2019\u201d")
 
@@ -76,8 +78,9 @@ def load_categories():
             if not name:
                 continue
             split = parts[2].strip() if len(parts) > 2 else ""
+            order = parts[3].strip() if len(parts) > 3 else ""
             if filters:
-                cats.append((name, filters, split))
+                cats.append((name, filters, split, order))
             elif fallback is None:
                 fallback = name
     if fallback is None:
@@ -85,7 +88,8 @@ def load_categories():
     # Longest filter word first, so the most specific match wins
     cats.sort(key=lambda c: -max(len(w) for w in c[1]))
     splits = {c[0]: c[2] for c in cats}
-    return cats, fallback, splits
+    orders = {c[0]: c[3] for c in cats}
+    return cats, fallback, splits, orders
 
 
 def parse_duration(raw):
@@ -132,7 +136,7 @@ def parse_title(title):
 
 def categorise(title, cats, fallback):
     """Longest matching filter word wins. Returns (category, all matches)."""
-    hits = [(name, w) for name, filters, _ in cats for w in filters if w in title]
+    hits = [(name, w) for name, filters, _, _ in cats for w in filters if w in title]
     if not hits:
         return fallback, []
     best = max(hits, key=lambda h: len(h[1]))
@@ -153,7 +157,7 @@ def section_for(title, split_by):
 
 
 def build():
-    cats, fallback, splits = load_categories()
+    cats, fallback, splits, orders = load_categories()
     print(f"Loaded {len(cats)} categories + catch-all “{fallback}” from categories.tsv")
     print(f"Fetching {FEED_URL}")
 
@@ -216,7 +220,7 @@ def build():
     for f in os.listdir(cat_dir):
         os.remove(os.path.join(cat_dir, f))
 
-    shelf, parts_report = [], {}
+    shelf, parts_report, leftovers, fellback = [], {}, {}, []
     for cat_name, eps in by_cat.items():
         sections = {}
         for e in eps:
@@ -224,11 +228,20 @@ def build():
         # Anything too small to be a real section rejoins the main list
         for sname in [k for k, v in sections.items() if k != cat_name and len(v) < MIN_PART]:
             sections.setdefault(cat_name, []).extend(sections.pop(sname))
+        # If real sections exist, the unsorted remainder needs its own label
+        if len(sections) > 1 and cat_name in sections:
+            leftovers[cat_name] = [x["t"] for x in sections[cat_name]]
+            sections[LEFTOVER] = sections.pop(cat_name)
 
+        want_numbers = orders.get(cat_name, "") == "מספר"
         series_out = []
         for sname, seps in sections.items():
-            numbered = [x for x in seps if x["n"] is not None]
-            ordered = bool(numbered) and len(numbered) >= len(seps) / 2
+            nums = [x["n"] for x in seps if x["n"] is not None]
+            usable = (bool(nums) and len(nums) == len(set(nums))
+                      and len(nums) >= len(seps) / 2)
+            ordered = want_numbers and usable
+            if want_numbers and not usable:
+                fellback.append((cat_name, sname, len(seps)))
             if ordered:
                 seps.sort(key=lambda x: (x["n"] is None, x["n"] or 0))
             else:
@@ -300,6 +313,21 @@ def build():
             print(f"\n  {c['name']}  ({c['count']} shiurim, {c['seriesCount']} parts)")
             for pname, pcount in parts_report[c["name"]]:
                 print(f"      {pcount:>5}  {pname}")
+
+    if fellback:
+        print("\nAsked to order by number, but the numbers repeat — using date order:")
+        for cat_name, sname, cnt in fellback:
+            label = f"{cat_name} / {sname}" if sname != cat_name else cat_name
+            print(f"  {label}  ({cnt} shiurim)")
+
+    if leftovers:
+        print("\nEpisodes in a split category that name no section:")
+        for cat_name, titles in leftovers.items():
+            print(f"\n  {cat_name} — {len(titles)} episode(s) under “{LEFTOVER}”")
+            for t in titles[:10]:
+                print("      " + t[:70])
+            if len(titles) > 10:
+                print(f"      … and {len(titles) - 10} more")
 
     fell = next((c["count"] for c in shelf if c["name"] == fallback), 0)
     if fell:
