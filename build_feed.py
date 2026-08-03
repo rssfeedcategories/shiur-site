@@ -20,6 +20,8 @@ import os
 import re
 import sys
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import quote_plus, urlsplit
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -29,6 +31,18 @@ FEED_URL = os.environ.get("FEED_URL", "https://feeds.libsyn.com/381893/rss")
 CATS_FILE = os.path.join(HERE, "categories.tsv")
 OUT_DIR = os.path.join(HERE, "data")
 RECENT_COUNT = 24
+
+# Libsyn keeps per-episode categories in its portal but does NOT put them in
+# the RSS feed.  The show's website exposes them through a JSON endpoint, one
+# page of 5 episodes at a time.  We walk those pages and remember the result in
+# category_map.json so normal runs stay fast.
+SHOW_URL = os.environ.get("SHOW_URL", "https://birkasavrohom.libsyn.com").rstrip("/")
+MAP_FILE = os.path.join(HERE, "category_map.json")
+PAGE_CHUNK = 8      # pages fetched in parallel while walking a category
+MAX_PAGES = 500     # guard so a misbehaving endpoint can't loop forever
+# Full scrape: every page of every category.  Otherwise only page 1 of each,
+# which is enough to catch newly published episodes.
+FULL_SCRAPE = "--full" in sys.argv or os.environ.get("FULL_SCRAPE", "") == "1"
 
 NS = {"itunes": "http://www.itunes.com/dtds/podcast-1.0.dtd"}
 DASH = r"\-\u2013\u2014\u05be"
@@ -114,6 +128,120 @@ def load_all_items(url, max_pages=25):
         print(f"  removed {len(items) - len(unique)} duplicate entries across pages")
     print(f"  feed delivered {len(unique)} episodes in total")
     return first, unique
+
+
+def feed_category(item, known):
+    """Returns the episode's own category from the feed, if it names a known one.
+
+    Libsyn keeps per-episode categories (Settings > Advanced Tools > Episode
+    Categories). When the feed carries them they are authoritative - far more
+    reliable than guessing from the title - so they win over the filter words.
+    """
+    tags = []
+    for c in item.findall("category"):
+        if c.text and c.text.strip():
+            tags.append(c.text.strip())
+    for c in item.findall("itunes:category", NS):
+        if (c.get("text") or "").strip():
+            tags.append(c.get("text").strip())
+    for t in tags:
+        if t in known:
+            return t
+    return ""
+
+
+def media_key(url):
+    """Filename part of an audio URL - a stable id that survives title edits."""
+    if not url:
+        return ""
+    return os.path.basename(urlsplit(url).path).strip().lower()
+
+
+def norm_title(t):
+    """Loose title form for matching: collapsed spaces, no quote marks."""
+    return re.sub(r"\s+", " ", (t or "")).strip().lower().translate(GERESH)
+
+
+def api_page(category, page):
+    url = f"{SHOW_URL}/podcast/page/{page}/category/{quote_plus(category)}/render-type/json"
+    try:
+        data = json.loads(fetch(url).decode("utf-8"))
+    except Exception as exc:
+        print(f"    page {page} of “{category}” failed: {exc}")
+        return None
+    return data if isinstance(data, list) else []
+
+
+def scrape_category(category, full):
+    """Returns [(media_key, normalised_title), ...] for one Libsyn category."""
+    found, page = [], 1
+    while page <= MAX_PAGES:
+        pages = range(page, page + (PAGE_CHUNK if full else 1))
+        with ThreadPoolExecutor(max_workers=PAGE_CHUNK) as pool:
+            results = list(pool.map(lambda n: api_page(category, n), pages))
+
+        stop = False
+        for res in results:
+            if not res:                      # empty page or a failure - end here
+                stop = True
+                break
+            for ep in res:
+                src = ep.get("primary_content") or {}
+                found.append((
+                    media_key(src.get("url_secure") or src.get("url") or ""),
+                    norm_title(ep.get("item_title")),
+                ))
+        if stop or not full:
+            break
+        page += PAGE_CHUNK
+    return found
+
+
+def build_category_map(names, full):
+    """Scrapes Libsyn's category pages -> {media_key: category}, {title: category}."""
+    by_media, by_title, clashes = {}, {}, []
+    mode = "full scrape" if full else "page 1 of each category"
+    print(f"Reading Libsyn categories from {SHOW_URL} ({mode})")
+
+    for name in names:
+        try:
+            eps = scrape_category(name, full)
+        except Exception as exc:
+            print(f"  “{name}” could not be read: {exc}")
+            continue
+        for key, title in eps:
+            if key:
+                if key in by_media and by_media[key] != name:
+                    clashes.append((title, by_media[key], name))
+                by_media[key] = name
+            if title:
+                by_title.setdefault(title, name)
+        print(f"  {len(eps):>5}  {name}")
+
+    if clashes:
+        print(f"  {len(clashes)} episode(s) sit in more than one category - first listed wins")
+    return by_media, by_title
+
+
+def load_category_map():
+    if not os.path.exists(MAP_FILE):
+        return {}, {}
+    try:
+        with open(MAP_FILE, encoding="utf-8") as f:
+            saved = json.load(f)
+        return saved.get("by_media", {}), saved.get("by_title", {})
+    except Exception as exc:
+        print(f"Could not read {os.path.basename(MAP_FILE)} ({exc}) - starting fresh")
+        return {}, {}
+
+
+def save_category_map(by_media, by_title):
+    with open(MAP_FILE, "w", encoding="utf-8") as f:
+        json.dump({
+            "generated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+            "by_media": by_media,
+            "by_title": by_title,
+        }, f, ensure_ascii=False, separators=(",", ":"))
 
 
 def slug(name):
@@ -237,6 +365,24 @@ def build():
     }
 
     episodes, skipped, unnumbered, ambiguous = [], 0, [], []
+    known_names = [c[0] for c in cats] + [fallback]
+    from_feed = from_filter = 0
+
+    by_media, by_title = load_category_map()
+    full = FULL_SCRAPE or not by_media
+    if not by_media and not FULL_SCRAPE:
+        print("No saved category map yet - doing a full scrape this once.")
+    fresh_media, fresh_title = build_category_map(known_names, full)
+    if fresh_media:
+        if full:
+            by_media, by_title = fresh_media, fresh_title
+        else:
+            by_media.update(fresh_media)
+            by_title.update(fresh_title)
+        save_category_map(by_media, by_title)
+        print(f"Category map holds {len(by_media)} episodes")
+    else:
+        print("Category pages returned nothing - falling back to the saved map")
     for item in feed_items:
         enc = item.find("enclosure")
         url = enc.get("url") if enc is not None else ""
@@ -247,7 +393,14 @@ def build():
         title = text(item, "title")
         dt = parse_date(text(item, "pubDate"))
         series, num, ref = parse_title(title)
-        cat, hits = categorise(title, cats, fallback)
+
+        tagged = by_media.get(media_key(url)) or by_title.get(norm_title(title))
+        if tagged in known_names:
+            cat, hits = tagged, []
+            from_feed += 1
+        else:
+            cat, hits = categorise(title, cats, fallback)
+            from_filter += 1
 
         if len({h[0] for h in hits}) > 1:
             ambiguous.append((title, cat, sorted({h[0] for h in hits})))
@@ -267,6 +420,8 @@ def build():
             "ser": series,
             "n": num,
         })
+
+    print(f"Categories: {from_feed} from Libsyn, {from_filter} guessed from the title")
 
     if not episodes:
         sys.exit("Feed parsed but no episodes with audio were found.")
