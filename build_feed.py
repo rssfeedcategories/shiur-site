@@ -207,7 +207,7 @@ def build():
     for f in os.listdir(cat_dir):
         os.remove(os.path.join(cat_dir, f))
 
-    shelf = []
+    shelf, parts_report = [], {}
     for cat_name, eps in by_cat.items():
         sections = {}
         for e in eps:
@@ -230,6 +230,7 @@ def build():
                 "episodes": [{k: v for k, v in x.items() if k not in ("ts", "cat", "sec")} for x in seps],
             })
         series_out.sort(key=lambda s: s["latest"], reverse=True)
+        parts_report[cat_name] = [(s["name"], s["count"]) for s in series_out]
 
         cslug = slug(cat_name)
         with open(os.path.join(cat_dir, f"{cslug}.json"), "w", encoding="utf-8") as f:
@@ -266,6 +267,14 @@ def build():
     print("-" * 60)
     for c in shelf:
         print(f"{c['name']:<26}{c['count']:>9}{c['seriesCount']:>7}   {c['latest']}")
+
+    multi = [c for c in shelf if c["seriesCount"] > 1]
+    if multi:
+        print("\nHow the split categories were divided:")
+        for c in multi:
+            print(f"\n  {c['name']}  ({c['count']} shiurim, {c['seriesCount']} parts)")
+            for pname, pcount in parts_report[c["name"]]:
+                print(f"      {pcount:>5}  {pname}")
 
     fell = next((c["count"] for c in shelf if c["name"] == fallback), 0)
     if fell:
