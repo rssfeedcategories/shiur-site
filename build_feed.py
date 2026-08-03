@@ -41,8 +41,13 @@ SHIUR_RE = re.compile(
     rf"\s*[{DASH}]?\s*(?P<ref>.*)$"
 )
 # Section markers used to split a big category into parts
-MASECHTA_RE = re.compile(r"מסכת\s+([^\s\-\u2013\u05be]+(?:\s+[^\s\-\u2013\u05be]+)?)")
-CHELEK_RE = re.compile(r"חלק\s+([^\s\-\u2013\u05be]{1,4})")
+MASECHTA_RE = re.compile(r"מסכת\s+([^\s\-\u2013\u05be]+)")
+CHELEK_RE = re.compile(r"חלק\s+([^\s\-\u2013\u05be]+)")
+
+# A section needs at least this many episodes to exist on its own
+MIN_PART = 3
+# Strip geresh / gershayim so "חלק ד" and "חלק ד'" are the same section
+GERESH = str.maketrans("", "", "'\"\u05f3\u05f4\u2019\u201d")
 
 
 def fetch(url):
@@ -70,15 +75,17 @@ def load_categories():
             filters = [w.strip() for w in (parts[1] if len(parts) > 1 else "").split("|") if w.strip()]
             if not name:
                 continue
+            split = parts[2].strip() if len(parts) > 2 else ""
             if filters:
-                cats.append((name, filters))
+                cats.append((name, filters, split))
             elif fallback is None:
                 fallback = name
     if fallback is None:
         fallback = "general"
     # Longest filter word first, so the most specific match wins
     cats.sort(key=lambda c: -max(len(w) for w in c[1]))
-    return cats, fallback
+    splits = {c[0]: c[2] for c in cats}
+    return cats, fallback, splits
 
 
 def parse_duration(raw):
@@ -125,26 +132,28 @@ def parse_title(title):
 
 def categorise(title, cats, fallback):
     """Longest matching filter word wins. Returns (category, all matches)."""
-    hits = [(name, w) for name, filters in cats for w in filters if w in title]
+    hits = [(name, w) for name, filters, _ in cats for w in filters if w in title]
     if not hits:
         return fallback, []
     best = max(hits, key=lambda h: len(h[1]))
     return best[0], hits
 
 
-def section_for(title, category):
-    """Splits a large category into parts — masechta for gemara, חלק elsewhere."""
-    m = MASECHTA_RE.search(title)
-    if m:
-        return "מסכת " + m.group(1).strip(TRIM)
-    m = CHELEK_RE.search(title)
-    if m:
-        return "חלק " + m.group(1).strip(TRIM)
+def section_for(title, split_by):
+    """Divides a category per the SPLIT BY column in categories.tsv."""
+    if split_by == "מסכת":
+        m = MASECHTA_RE.search(title)
+        if m:
+            return "מסכת " + m.group(1).strip(TRIM).translate(GERESH)
+    elif split_by == "חלק":
+        m = CHELEK_RE.search(title)
+        if m:
+            return "חלק " + m.group(1).strip(TRIM).translate(GERESH)
     return None
 
 
 def build():
-    cats, fallback = load_categories()
+    cats, fallback, splits = load_categories()
     print(f"Loaded {len(cats)} categories + catch-all “{fallback}” from categories.tsv")
     print(f"Fetching {FEED_URL}")
 
@@ -188,7 +197,7 @@ def build():
             "s": parse_duration(text(item, "itunes:duration", NS)),
             "c": slug(cat),
             "cat": cat,
-            "sec": section_for(title, cat),
+            "sec": section_for(title, splits.get(cat, "")),
             "ser": series,
             "n": num,
         })
@@ -212,6 +221,9 @@ def build():
         sections = {}
         for e in eps:
             sections.setdefault(e["sec"] or cat_name, []).append(e)
+        # Anything too small to be a real section rejoins the main list
+        for sname in [k for k, v in sections.items() if k != cat_name and len(v) < MIN_PART]:
+            sections.setdefault(cat_name, []).extend(sections.pop(sname))
 
         series_out = []
         for sname, seps in sections.items():
@@ -267,6 +279,19 @@ def build():
     print("-" * 60)
     for c in shelf:
         print(f"{c['name']:<26}{c['count']:>9}{c['seriesCount']:>7}   {c['latest']}")
+
+    print("\nShiur numbering per category:")
+    for c in shelf:
+        eps = by_cat[c["name"]]
+        nums = [e["n"] for e in eps if e["n"] is not None]
+        blank = len(eps) - len(nums)
+        if not nums:
+            print(f"  {c['name']:<26} no shiur numbers — sorted by date")
+            continue
+        dupes = len(nums) - len(set(nums))
+        note = f"repeats {dupes}x — numbering restarts" if dupes else "continuous, no repeats"
+        extra = f", {blank} unnumbered" if blank else ""
+        print(f"  {c['name']:<26} #{min(nums)}–#{max(nums)}  ({note}{extra})")
 
     multi = [c for c in shelf if c["seriesCount"] > 1]
     if multi:
