@@ -41,8 +41,13 @@ SHIUR_RE = re.compile(
     rf"\s*[{DASH}]?\s*(?P<ref>.*)$"
 )
 # Section markers used to split a big category into parts
-MASECHTA_RE = re.compile(r"מסכת\s+([^\s\-\u2013\u05be]+)")
-CHELEK_RE = re.compile(r"חלק\s+([^\s\-\u2013\u05be]+)")
+def section_re(keyword):
+    """Captures the name after a keyword, stopping at a dash, שיעור, # or end."""
+    return re.compile(
+        rf"{keyword}\s+(.+?)(?=\s*[{DASH}]|\s*שיעור|\s*#|$)"
+    )
+
+SECTION_RES = {k: section_re(k) for k in ("מסכת", "חלק", "הלכות", "שער", "פרק")}
 
 # A section needs at least this many episodes to exist on its own
 MIN_PART = 3
@@ -144,16 +149,23 @@ def categorise(title, cats, fallback):
 
 
 def section_for(title, split_by):
-    """Divides a category per the SPLIT BY column in categories.tsv."""
-    if split_by == "מסכת":
-        m = MASECHTA_RE.search(title)
-        if m:
-            return "מסכת " + m.group(1).strip(TRIM).translate(GERESH)
-    elif split_by == "חלק":
-        m = CHELEK_RE.search(title)
-        if m:
-            return "חלק " + m.group(1).strip(TRIM).translate(GERESH)
-    return None
+    """Every section name the title mentions, in the order they appear.
+
+    SPLIT BY may list several keywords separated by | so a category using
+    both הלכות and חלק works. Returning every candidate lets the caller pick
+    the one that names a section that actually exists, which rescues titles
+    like "מסכת חדשה - מסכת שבת - שיעור #1".
+    """
+    found = []
+    for keyword in [k.strip() for k in split_by.split("|") if k.strip()]:
+        rx = SECTION_RES.get(keyword)
+        if rx is None:
+            rx = SECTION_RES[keyword] = section_re(keyword)
+        for m in rx.finditer(title):
+            name = m.group(1).strip(TRIM).translate(GERESH)
+            if name:
+                found.append(f"{keyword} {name}")
+    return found
 
 
 def build():
@@ -201,7 +213,7 @@ def build():
             "s": parse_duration(text(item, "itunes:duration", NS)),
             "c": slug(cat),
             "cat": cat,
-            "sec": section_for(title, splits.get(cat, "")),
+            "secs": section_for(title, splits.get(cat, "")),
             "ser": series,
             "n": num,
         })
@@ -222,9 +234,20 @@ def build():
 
     shelf, parts_report, leftovers, fellback = [], {}, {}, []
     for cat_name, eps in by_cat.items():
+        # Pass 1 — how often is each candidate the title's first choice?
+        tally = {}
+        for e in eps:
+            if e["secs"]:
+                tally[e["secs"][0]] = tally.get(e["secs"][0], 0) + 1
+        real = {k for k, v in tally.items() if v >= MIN_PART}
+
+        # Pass 2 — prefer a candidate that names a section that really exists
         sections = {}
         for e in eps:
-            sections.setdefault(e["sec"] or cat_name, []).append(e)
+            pick = next((c for c in e["secs"] if c in real), None) \
+                   or (e["secs"][0] if e["secs"] else None)
+            e["sec"] = pick
+            sections.setdefault(pick or cat_name, []).append(e)
         # Anything too small to be a real section rejoins the main list
         for sname in [k for k, v in sections.items() if k != cat_name and len(v) < MIN_PART]:
             sections.setdefault(cat_name, []).extend(sections.pop(sname))
@@ -252,7 +275,7 @@ def build():
                 "ordered": ordered,
                 "count": len(seps),
                 "latest": max(dates) if dates else "",
-                "episodes": [{k: v for k, v in x.items() if k not in ("ts", "cat", "sec")} for x in seps],
+                "episodes": [{k: v for k, v in x.items() if k not in ("ts", "cat", "sec", "secs")} for x in seps],
             })
         series_out.sort(key=lambda s: s["latest"], reverse=True)
         parts_report[cat_name] = [(s["name"], s["count"]) for s in series_out]
@@ -270,7 +293,7 @@ def build():
 
     shelf.sort(key=lambda c: c["latest"], reverse=True)
 
-    slim = [{k: v for k, v in e.items() if k not in ("ts", "cat", "sec")} for e in episodes]
+    slim = [{k: v for k, v in e.items() if k not in ("ts", "cat", "sec", "secs")} for e in episodes]
 
     with open(os.path.join(OUT_DIR, "index.json"), "w", encoding="utf-8") as f:
         json.dump({
