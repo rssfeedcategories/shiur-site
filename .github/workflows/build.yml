@@ -2,8 +2,16 @@ name: Rebuild site data from feed
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/15 * * * *"     # quick run - new episodes only
+    - cron: "0 3 * * *"        # nightly full scrape of every category page
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "quick = page 1 of each category, full = every page"
+        required: false
+        default: quick
+        type: choice
+        options: [quick, full]
   push:
     branches: [ main ]
 
@@ -25,17 +33,19 @@ jobs:
           python-version: "3.12"
 
       - name: Pull feed and rebuild JSON
+        env:
+          FULL_SCRAPE: ${{ (github.event.schedule == '0 3 * * *' || github.event.inputs.mode == 'full') && '1' || '0' }}
         run: python3 build_feed.py
 
       - name: Commit if anything changed
         run: |
           git config user.name  "feed-bot"
           git config user.email "feed-bot@users.noreply.github.com"
-          if [ -z "$(git status --porcelain data)" ]; then
-            echo "Feed unchanged - nothing to commit."
+          if [ -z "$(git status --porcelain data category_map.json)" ]; then
+            echo "Nothing changed - no commit."
             exit 0
           fi
-          git add data
+          git add data category_map.json
           git commit -m "Refresh episode data ($(date -u '+%Y-%m-%d %H:%M UTC'))"
           for i in 1 2 3; do
             if git push; then exit 0; fi
