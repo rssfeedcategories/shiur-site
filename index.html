@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Birkas Avrohom — Daily Shiurim</title>
+<meta name="description" content="Daily shiurim from Rabbi Gips. Browse by sefer, pick up where you left off.">
+<meta name="theme-color" content="#16202E">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16202E; --shelf:#1F2C3D; --raised:#26364B; --edge:#31435A;
+  --parchment:#EDE6D8; --muted:#8DA0B8; --brass:#C9A24B; --sage:#7E9C8B;
+  --shadow:0 1px 3px rgba(0,0,0,.4);
+  --serif:'Frank Ruhl Libre',Georgia,serif;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --bar:76px;
+}
+html[data-theme="light"]{
+  --ink:#EDEBE4; --shelf:#FFFFFF; --raised:#F7F5F0; --edge:#DAD5C9;
+  --parchment:#1A2432; --muted:#5A6B80; --brass:#96701C; --sage:#4A6A58;
+  --shadow:0 1px 3px rgba(26,36,50,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink); color:var(--parchment);
+  font-family:var(--sans); font-size:16px; line-height:1.5;
+  padding-bottom:calc(var(--bar) + env(safe-area-inset-bottom));
+  overflow-wrap:break-word;
+}
+.he{font-family:var(--serif); direction:rtl; unicode-bidi:isolate; text-align:right}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:3px}
+.wrap{max-width:760px;margin:0 auto;padding:0 18px}
+
+/* ---------- header ---------- */
+.top{padding:22px 0 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.brand h1{
+  margin:0;font-family:var(--sans);font-size:15px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;
+}
+.brand p{margin:5px 0 0;font-size:13px;color:var(--muted)}
+.icon-btn{
+  width:38px;height:38px;border-radius:50%;border:1px solid var(--edge);
+  display:grid;place-items:center;flex:none;color:var(--muted);
+}
+.icon-btn:hover{color:var(--brass);border-color:var(--brass)}
+
+/* ---------- search ---------- */
+.search{position:sticky;top:0;z-index:40;background:var(--ink);padding:8px 0 14px}
+.search-in{
+  display:flex;align-items:center;gap:10px;background:var(--shelf);
+  border:1px solid var(--edge);border-radius:10px;padding:0 14px;height:46px;
+}
+.search-in svg{flex:none;color:var(--muted)}
+.search-in input{
+  flex:1;background:none;border:none;outline:none;color:var(--parchment);
+  font:inherit;font-size:16px;min-width:0;
+}
+.search-in input::placeholder{color:var(--muted)}
+.clear-btn{color:var(--muted);font-size:20px;line-height:1;padding:4px}
+
+/* ---------- section headings ---------- */
+.sec{margin:26px 0 0}
+.sec-head{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--edge);
+}
+.sec-head h2{
+  margin:0;font-size:11px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);
+}
+.sec-head span{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+/* ---------- resume rail ---------- */
+.rail{display:flex;gap:12px;overflow-x:auto;padding:2px 18px 6px;margin:0 -18px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.resume{
+  flex:none;width:230px;background:var(--shelf);border:1px solid var(--edge);
+  border-radius:10px;padding:13px 14px;text-align:left;display:block;
+}
+.resume:hover{border-color:var(--brass)}
+.resume .r-ser{font-size:17px;line-height:1.3;margin:0 0 6px;font-weight:500}
+.resume .r-num{font-family:var(--mono);font-size:11px;color:var(--brass);letter-spacing:.06em}
+.bar-track{height:3px;background:var(--edge);border-radius:2px;margin:11px 0 7px;overflow:hidden}
+.bar-fill{height:100%;background:var(--brass);border-radius:2px;transition:width .3s ease}
+.r-meta{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;justify-content:space-between}
+
+/* ---------- episode rows ---------- */
+.ep{
+  display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  padding:12px 4px;border-bottom:1px solid var(--edge);
+}
+.ep:hover{background:var(--raised)}
+.ep-play{
+  width:34px;height:34px;flex:none;border-radius:50%;border:1px solid var(--edge);
+  display:grid;place-items:center;color:var(--muted);
+}
+.ep:hover .ep-play,.ep.is-current .ep-play{color:var(--brass);border-color:var(--brass)}
+.ep-body{flex:1;min-width:0}
+.ep-title{font-size:16px;line-height:1.35;margin:0}
+.ep.is-done .ep-title{color:var(--muted)}
+.ep-sub{
+  font-family:var(--mono);font-size:11px;color:var(--muted);
+  margin-top:4px;display:flex;gap:9px;flex-wrap:wrap;
+}
+.ep-sub .n{color:var(--brass)}
+.ep-prog{height:2px;background:var(--edge);border-radius:2px;margin-top:7px;overflow:hidden}
+.ep-prog i{display:block;height:100%;background:var(--brass)}
+.tick{color:var(--sage);flex:none}
+
+/* ---------- the shelf (signature) ---------- */
+.shelf-grid{display:grid;gap:10px}
+.spine{
+  position:relative;display:block;width:100%;text-align:left;
+  background:var(--shelf);border:1px solid var(--edge);border-radius:8px;
+  padding:16px 16px 15px 24px;overflow:hidden;
+  transition:transform .12s ease,border-color .12s ease;
+}
+.spine::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:var(--band,6px);
+  background:linear-gradient(180deg,var(--brass),color-mix(in srgb,var(--brass) 62%,#000));
+}
+.spine:hover{border-color:var(--brass);transform:translateX(2px)}
+.spine:active{transform:translateX(0)}
+.spine-name{font-size:23px;line-height:1.25;margin:0;font-weight:500}
+.spine-meta{
+  margin-top:9px;font-family:var(--mono);font-size:11px;color:var(--muted);
+  display:flex;gap:14px;flex-wrap:wrap;
+}
+.spine-meta b{color:var(--brass);font-weight:500}
+
+/* ---------- category / series view ---------- */
+.back{display:inline-flex;align-items:center;gap:7px;color:var(--muted);font-size:13px;padding:6px 0;margin:14px 0 2px}
+.back:hover{color:var(--brass)}
+.view-title{font-size:32px;line-height:1.2;margin:6px 0 4px;font-weight:500}
+.view-sub{font-family:var(--mono);font-size:12px;color:var(--muted);margin:0 0 8px}
+.series{border:1px solid var(--edge);border-radius:8px;margin-bottom:10px;overflow:hidden;background:var(--shelf)}
+.series-head{display:flex;align-items:center;gap:12px;width:100%;padding:14px 15px;text-align:left}
+.series-head:hover{background:var(--raised)}
+.series-head h3{margin:0;font-size:19px;font-weight:500;line-height:1.3;flex:1;min-width:0}
+.series-head .cnt{font-family:var(--mono);font-size:11px;color:var(--brass);flex:none}
+.chev{color:var(--muted);flex:none;transition:transform .2s ease}
+.series.open .chev{transform:rotate(90deg)}
+.series-body{display:none;padding:0 15px 4px}
+.series.open .series-body{display:block}
+.series-body .ep:last-child{border-bottom:none}
+
+/* ---------- states ---------- */
+.msg{text-align:center;padding:52px 20px;color:var(--muted)}
+.msg h3{color:var(--parchment);font-family:var(--sans);font-size:17px;font-weight:600;margin:0 0 8px}
+.msg p{margin:0 0 6px;font-size:14px;line-height:1.6}
+.msg code{font-family:var(--mono);font-size:12px;background:var(--shelf);padding:2px 6px;border-radius:4px;border:1px solid var(--edge)}
+.skel{height:62px;background:var(--shelf);border-radius:8px;margin-bottom:10px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:.85}}
+
+/* ---------- player ---------- */
+.player{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--shelf);
+  border-top:1px solid var(--edge);transform:translateY(105%);
+  transition:transform .25s cubic-bezier(.3,.7,.3,1);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.player.up{transform:translateY(0)}
+.seek{
+  -webkit-appearance:none;appearance:none;display:block;width:100%;height:14px;
+  background:none;margin:-7px 0 -5px;cursor:pointer;
+}
+.seek::-webkit-slider-runnable-track{height:3px;background:var(--edge)}
+.seek::-moz-range-track{height:3px;background:var(--edge)}
+.seek::-webkit-slider-thumb{
+  -webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+  background:var(--brass);margin-top:-5px;
+}
+.seek::-moz-range-thumb{width:13px;height:13px;border:none;border-radius:50%;background:var(--brass)}
+.p-row{display:flex;align-items:center;gap:12px;padding:10px 18px 12px;max-width:760px;margin:0 auto}
+.p-info{flex:1;min-width:0}
+.p-title{font-size:15px;line-height:1.3;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-time{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px}
+.p-ctrl{display:flex;align-items:center;gap:6px;flex:none}
+.p-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.p-btn:hover{color:var(--brass)}
+.p-main{width:46px;height:46px;background:var(--brass);color:var(--ink)}
+.p-main:hover{color:var(--ink);filter:brightness(1.08)}
+.rate{
+  font-family:var(--mono);font-size:12px;color:var(--muted);
+  border:1px solid var(--edge);border-radius:6px;padding:6px 8px;min-width:44px;
+}
+.rate:hover{color:var(--brass);border-color:var(--brass)}
+.hide-sm{display:flex}
+@media (max-width:560px){
+  .hide-sm{display:none}
+  .view-title{font-size:26px}
+  .spine-name{font-size:20px}
+  .p-row{gap:8px;padding:9px 14px 11px}
+}
+@media (min-width:620px){.shelf-grid{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Birkas Avrohom</h1>
+      <p>Daily shiurim · Rabbi Gips</p>
+    </div>
+    <button class="icon-btn" id="theme" aria-label="Switch between dark and light">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </header>
+
+  <div class="search">
+    <div class="search-in">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Search all shiurim" autocomplete="off" aria-label="Search all shiurim">
+      <button class="clear-btn" id="clear" hidden aria-label="Clear search">×</button>
+    </div>
+  </div>
+
+  <main id="main">
+    <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+  </main>
+</div>
+
+<div class="player" id="player" role="region" aria-label="Now playing">
+  <input class="seek" id="seek" type="range" min="0" max="1000" value="0" aria-label="Seek">
+  <div class="p-row">
+    <div class="p-info">
+      <p class="p-title he" id="pTitle">—</p>
+      <div class="p-time"><span id="pCur">0:00</span> / <span id="pDur">0:00</span></div>
+    </div>
+    <div class="p-ctrl">
+      <button class="p-btn hide-sm" id="back15" aria-label="Back 15 seconds">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4L5 9l6 5"/><path d="M5 9h8a6 6 0 1 1 0 12H8"/></svg>
+      </button>
+      <button class="p-btn p-main" id="toggle" aria-label="Play">
+        <svg id="icoPlay" width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>
+        <svg id="icoPause" width="19" height="19" viewBox="0 0 24 24" fill="currentColor" hidden><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+      </button>
+      <button class="p-btn hide-sm" id="fwd30" aria-label="Forward 30 seconds">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4l6 5-6 5"/><path d="M19 9h-8a6 6 0 1 0 0 12h5"/></svg>
+      </button>
+      <button class="rate" id="rate" aria-label="Playback speed">1×</button>
+    </div>
+  </div>
+</div>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+"use strict";
+
+/* Storage that degrades to memory if localStorage is unavailable */
+const store = (() => {
+  const mem = {};
+  let ok = false;
+  try { localStorage.setItem("__t", "1"); localStorage.removeItem("__t"); ok = true; } catch (e) {}
+  return {
+    get(k, d) {
+      try { const v = ok ? localStorage.getItem(k) : mem[k]; return v == null ? d : JSON.parse(v); }
+      catch (e) { return d; }
+    },
+    set(k, v) {
+      const s = JSON.stringify(v);
+      try { if (ok) localStorage.setItem(k, s); else mem[k] = s; } catch (e) { mem[k] = s; }
+    }
+  };
+})();
+
+const S = {
+  index: null,
+  search: null,
+  cats: {},         // slug -> loaded category file
+  view: { name: "home" },
+  pos: store.get("pos", {}),      // id -> {p: seconds, d: duration, t, ser, n, u, at}
+  current: null
+};
+
+const $ = s => document.querySelector(s);
+const audio = $("#audio");
+
+/* ---------- helpers ---------- */
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function hhmm(sec) {
+  if (!sec || !isFinite(sec)) return "0:00";
+  sec = Math.floor(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  return h ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+           : `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function niceDate(d) {
+  if (!d) return "";
+  const [y, m, day] = d.split("-").map(Number);
+  const mo = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][m - 1];
+  return `${mo} ${day}, ${y}`;
+}
+
+const pct = ep => {
+  const r = S.pos[ep.id || ep.i];
+  if (!r || !r.d) return 0;
+  return Math.min(100, Math.round(r.p / r.d * 100));
+};
+const isDone = ep => pct(ep) >= 92;
+
+/* ---------- rendering pieces ---------- */
+function epRow(ep) {
+  const id = ep.id || ep.i;
+  const p = pct(ep), done = p >= 92, playing = S.current === id;
+  const bits = [];
+  if (ep.n != null) bits.push(`<span class="n">#${ep.n}</span>`);
+  if (ep.d) bits.push(esc(niceDate(ep.d)));
+  if (ep.s) bits.push(hhmm(ep.s));
+  return `<button class="ep${done ? " is-done" : ""}${playing ? " is-current" : ""}" data-play="${esc(id)}">
+    <span class="ep-play">${playing && !audio.paused
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>'}</span>
+    <span class="ep-body">
+      <span class="ep-title he">${esc(ep.t)}</span>
+      <span class="ep-sub">${bits.join("")}</span>
+      ${p > 0 && !done ? `<span class="ep-prog"><i style="width:${p}%"></i></span>` : ""}
+    </span>
+    ${done ? '<svg class="tick" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 7"/></svg>' : ""}
+  </button>`;
+}
+
+/* The shelf: brass band thickness encodes how many shiurim are in the category */
+function spine(cat, max) {
+  const band = 4 + Math.round(Math.sqrt(cat.count / Math.max(max, 1)) * 12);
+  return `<button class="spine" data-cat="${esc(cat.slug)}" style="--band:${band}px">
+    <span class="spine-name he">${esc(cat.name)}</span>
+    <span class="spine-meta">
+      <span><b>${cat.count}</b> shiurim</span>
+      ${cat.seriesCount > 1 ? `<span>${cat.seriesCount} parts</span>` : ""}
+      ${cat.latest ? `<span>Last ${esc(niceDate(cat.latest))}</span>` : ""}
+    </span>
+  </button>`;
+}
+
+/* ---------- views ---------- */
+function renderHome() {
+  const ix = S.index;
+  let html = "";
+
+  // Pick up where you left off
+  const resume = Object.entries(S.pos)
+    .filter(([, r]) => r.p > 25 && r.d && r.p / r.d < 0.92)
+    .sort((a, b) => (b[1].at || 0) - (a[1].at || 0))
+    .slice(0, 8);
+
+  if (resume.length) {
+    html += `<section class="sec"><div class="sec-head"><h2>Pick up where you left off</h2></div>
+      <div class="rail">` + resume.map(([id, r]) => {
+        const p = Math.round(r.p / r.d * 100);
+        return `<button class="resume" data-play="${esc(id)}">
+          <span class="r-ser he" style="display:block">${esc(r.ser || r.t || "")}</span>
+          ${r.n != null ? `<span class="r-num">SHIUR #${r.n}</span>` : ""}
+          <span class="bar-track" style="display:block"><span class="bar-fill" style="width:${p}%;display:block"></span></span>
+          <span class="r-meta"><span>${p}% done</span><span>${hhmm(r.d - r.p)} left</span></span>
+        </button>`;
+      }).join("") + `</div></section>`;
+  }
+
+  // Newest
+  html += `<section class="sec"><div class="sec-head"><h2>Newest</h2>
+    <span>${ix.episodeCount.toLocaleString()} total</span></div>
+    ${ix.recent.slice(0, 8).map(epRow).join("")}</section>`;
+
+  // The shelf
+  const max = Math.max(...ix.categories.map(c => c.count));
+  html += `<section class="sec"><div class="sec-head"><h2>The shelf</h2>
+    <span>${ix.categories.length} sefarim</span></div>
+    <div class="shelf-grid">${ix.categories.map(c => spine(c, max)).join("")}</div></section>`;
+
+  $("#main").innerHTML = html;
+}
+
+async function renderCat(slug) {
+  $("#main").innerHTML = '<div class="skel"></div><div class="skel"></div>';
+  let cat = S.cats[slug];
+  if (!cat) {
+    try {
+      const r = await fetch(`data/cat/${slug}.json`);
+      if (!r.ok) throw new Error(r.status);
+      cat = S.cats[slug] = await r.json();
+    } catch (e) {
+      $("#main").innerHTML = `<div class="msg"><h3>That sefer didn't load</h3>
+        <p>The file <code>data/cat/${esc(slug)}.json</code> is missing. Run the build to regenerate it.</p></div>`;
+      return;
+    }
+  }
+
+  const total = cat.series.reduce((n, s) => n + s.count, 0);
+  // Open the series you're furthest into, else the most recent
+  let openIdx = 0;
+  let best = -1;
+  cat.series.forEach((s, i) => {
+    const started = s.episodes.filter(e => S.pos[e.id]).length;
+    if (started > best) { best = started; openIdx = i; }
+  });
+
+  $("#main").innerHTML = `
+    <button class="back" data-home>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+      All sefarim
+    </button>
+    <h2 class="view-title he">${esc(cat.name)}</h2>
+    <p class="view-sub">${total} shiurim · ${cat.series.length} ${cat.series.length === 1 ? "series" : "series"}</p>
+    ${cat.series.map((s, i) => {
+      const nextUp = s.episodes.find(e => !isDone(e));
+      return `<div class="series${i === openIdx ? " open" : ""}">
+        <button class="series-head" data-series="${i}">
+          <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+          <h3 class="he">${esc(s.name)}</h3>
+          <span class="cnt">${s.ordered && nextUp && nextUp.n != null ? `UP TO #${nextUp.n}` : s.count}</span>
+        </button>
+        <div class="series-body">${s.episodes.map(epRow).join("")}</div>
+      </div>`;
+    }).join("")}`;
+}
+
+function renderSearch(term) {
+  const t = term.trim();
+  if (!t) { route(); return; }
+  if (!S.search) { $("#main").innerHTML = '<div class="msg"><p>Loading the search index…</p></div>'; return; }
+
+  const words = t.split(/\s+/).filter(Boolean);
+  const hits = S.search.filter(e => {
+    const hay = e.t + " " + (e.ser || "") + " " + (e.n != null ? "#" + e.n : "");
+    return words.every(w => hay.includes(w));
+  }).slice(0, 120);
+
+  $("#main").innerHTML = `<section class="sec">
+    <div class="sec-head"><h2>Search</h2><span>${hits.length}${hits.length === 120 ? "+" : ""} found</span></div>
+    ${hits.length
+      ? hits.map(epRow).join("")
+      : `<div class="msg"><h3>Nothing matched “${esc(t)}”</h3>
+         <p>Try a sefer name in Hebrew, or a shiur number like <code>#152</code>.</p></div>`}
+  </section>`;
+}
+
+/* ---------- routing ---------- */
+function route() {
+  const h = location.hash.replace(/^#/, "");
+  if (h.startsWith("cat/")) { S.view = { name: "cat", slug: h.slice(4) }; renderCat(S.view.slug); }
+  else { S.view = { name: "home" }; renderHome(); }
+  window.scrollTo(0, 0);
+}
+
+/* ---------- player ---------- */
+function findEp(id) {
+  if (S.search) { const e = S.search.find(x => x.i === id); if (e) return e; }
+  for (const slug in S.cats)
+    for (const s of S.cats[slug].series) {
+      const e = s.episodes.find(x => x.id === id);
+      if (e) return e;
+    }
+  const r = S.index && S.index.recent.find(x => x.id === id);
+  if (r) return r;
+  const saved = S.pos[id];
+  return saved ? { id, t: saved.t, u: saved.u, s: saved.d, ser: saved.ser, n: saved.n } : null;
+}
+
+function play(id) {
+  const ep = findEp(id);
+  if (!ep || !ep.u) return;
+  const epid = ep.id || ep.i;
+
+  if (S.current === epid) {
+    audio.paused ? audio.play().catch(() => {}) : audio.pause();
+    return;
+  }
+
+  S.current = epid;
+  audio.src = ep.u;
+  $("#pTitle").textContent = ep.t;
+  $("#player").classList.add("up");
+  document.documentElement.style.setProperty("--bar", "76px");
+
+  const saved = S.pos[epid];
+  const resumeAt = saved && saved.d && saved.p / saved.d < 0.95 ? saved.p : 0;
+  audio.addEventListener("loadedmetadata", () => {
+    if (resumeAt > 5) audio.currentTime = resumeAt;
+  }, { once: true });
+
+  audio.playbackRate = store.get("rate", 1);
+  audio.play().catch(() => {});
+
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: ep.t,
+      artist: ep.ser || "Rabbi Gips",
+      album: (S.index && S.index.podcast.title) || "Birkas Avrohom",
+      artwork: S.index && S.index.podcast.image
+        ? [{ src: S.index.podcast.image, sizes: "512x512" }] : []
+    });
+  }
+  paint();
+}
+
+let lastSave = 0;
+function savePos() {
+  if (!S.current || !audio.duration || !isFinite(audio.duration)) return;
+  const ep = findEp(S.current) || {};
+  S.pos[S.current] = {
+    p: audio.currentTime, d: audio.duration, t: ep.t, u: ep.u,
+    ser: ep.ser, n: ep.n, at: Date.now()
+  };
+  // keep the 60 most recent so storage never grows unbounded
+  const keys = Object.keys(S.pos);
+  if (keys.length > 60) {
+    keys.sort((a, b) => (S.pos[b].at || 0) - (S.pos[a].at || 0))
+        .slice(60).forEach(k => delete S.pos[k]);
+  }
+  store.set("pos", S.pos);
+}
+
+function paint() {
+  const playing = S.current && !audio.paused;
+  $("#icoPlay").hidden = !!playing;
+  $("#icoPause").hidden = !playing;
+  $("#toggle").setAttribute("aria-label", playing ? "Pause" : "Play");
+  document.querySelectorAll(".ep").forEach(el => {
+    el.classList.toggle("is-current", el.dataset.play === S.current);
+  });
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e => {
+  const p = e.target.closest("[data-play]");
+  if (p) { play(p.dataset.play); return; }
+
+  const c = e.target.closest("[data-cat]");
+  if (c) { location.hash = "cat/" + c.dataset.cat; return; }
+
+  if (e.target.closest("[data-home]")) { location.hash = ""; return; }
+
+  const sh = e.target.closest("[data-series]");
+  if (sh) { sh.parentElement.classList.toggle("open"); return; }
+});
+
+$("#toggle").onclick = () => {
+  if (!S.current) return;
+  audio.paused ? audio.play().catch(() => {}) : audio.pause();
+};
+$("#back15").onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 15); };
+$("#fwd30").onclick = () => { audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 30); };
+
+const RATES = [1, 1.25, 1.5, 1.75, 2];
+$("#rate").onclick = () => {
+  const i = RATES.indexOf(store.get("rate", 1));
+  const next = RATES[(i + 1) % RATES.length];
+  audio.playbackRate = next;
+  store.set("rate", next);
+  $("#rate").textContent = next + "×";
+};
+
+const seek = $("#seek");
+let dragging = false;
+seek.addEventListener("input", () => {
+  dragging = true;
+  if (audio.duration) $("#pCur").textContent = hhmm(seek.value / 1000 * audio.duration);
+});
+seek.addEventListener("change", () => {
+  if (audio.duration) audio.currentTime = seek.value / 1000 * audio.duration;
+  dragging = false;
+});
+
+audio.addEventListener("timeupdate", () => {
+  if (!dragging && audio.duration) {
+    seek.value = audio.currentTime / audio.duration * 1000;
+    $("#pCur").textContent = hhmm(audio.currentTime);
+    $("#pDur").textContent = hhmm(audio.duration);
+  }
+  if (Date.now() - lastSave > 4000) { lastSave = Date.now(); savePos(); }
+});
+audio.addEventListener("play", paint);
+audio.addEventListener("pause", () => { savePos(); paint(); });
+audio.addEventListener("ended", () => { savePos(); paint(); });
+window.addEventListener("pagehide", savePos);
+
+const q = $("#q");
+let timer;
+q.addEventListener("input", () => {
+  $("#clear").hidden = !q.value;
+  clearTimeout(timer);
+  timer = setTimeout(() => renderSearch(q.value), 180);
+});
+$("#clear").onclick = () => { q.value = ""; $("#clear").hidden = true; route(); };
+
+$("#theme").onclick = () => {
+  const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  document.documentElement.dataset.theme = next;
+  document.querySelector('meta[name="theme-color"]').content = next === "light" ? "#EDEBE4" : "#16202E";
+  store.set("theme", next);
+};
+
+window.addEventListener("hashchange", () => { if (!q.value) route(); });
+
+/* ---------- boot ---------- */
+document.documentElement.dataset.theme = store.get("theme", "dark");
+if (store.get("theme", "dark") === "light")
+  document.querySelector('meta[name="theme-color"]').content = "#EDEBE4";
+$("#rate").textContent = store.get("rate", 1) + "×";
+
+(async function init() {
+  try {
+    const r = await fetch("data/index.json");
+    if (!r.ok) throw new Error(r.status);
+    S.index = await r.json();
+  } catch (e) {
+    $("#main").innerHTML = `<div class="msg">
+      <h3>No episode data yet</h3>
+      <p>Run <code>python3 build_feed.py</code> to pull the feed, or wait for the scheduled build to finish.</p>
+      <p>If you're opening this file straight from disk, start a local server instead:<br>
+      <code>python3 -m http.server</code></p></div>`;
+    return;
+  }
+
+  document.title = (S.index.podcast.title || "Birkas Avrohom") + " — Daily Shiurim";
+  route();
+
+  fetch("data/search.json").then(r => r.json()).then(d => {
+    S.search = d;
+    if (q.value) renderSearch(q.value);
+  }).catch(() => {});
+})();
+
+if ("serviceWorker" in navigator && location.protocol.startsWith("http"))
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
+</body>
+</html>

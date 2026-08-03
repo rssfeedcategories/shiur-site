@@ -1,0 +1,15 @@
+{
+  "name": "Birkas Avrohom — Daily Shiurim",
+  "short_name": "Birkas Avrohom",
+  "description": "Daily shiurim from Rabbi Gips. Browse by sefer, pick up where you left off.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16202E",
+  "theme_color": "#16202E",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
