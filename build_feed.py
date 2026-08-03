@@ -58,9 +58,62 @@ GERESH = str.maketrans("", "", "'\"\u05f3\u05f4\u2019\u201d")
 
 
 def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "birkas-avrohom-builder/3.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; birkas-avrohom-builder/4.0; +podcast-client)",
+                 "Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.8"})
     with urllib.request.urlopen(req, timeout=180) as r:
         return r.read()
+
+
+ATOM_LINK = "{http://www.w3.org/2005/Atom}link"
+
+
+def load_all_items(url, max_pages=25):
+    """Reads the feed, following <atom:link rel="next"> if the host pages it.
+
+    Large Libsyn shows can split the archive across several pages. Reading only
+    the first page silently loses the older half of the show, so follow the
+    chain and report what each page gave us.
+    """
+    root = ET.fromstring(fetch(url))
+    first = root.find("channel")
+    if first is None:
+        sys.exit("No <channel> in the feed - check the feed URL.")
+
+    channel = first
+    items = list(channel.findall("item"))
+    print(f"  page 1: {len(items)} <item> entries")
+
+    seen, page = {url}, 1
+    while page < max_pages:
+        nxt = ""
+        for link in channel.findall(ATOM_LINK):
+            if link.get("rel") == "next" and link.get("href"):
+                nxt = link.get("href")
+                break
+        if not nxt or nxt in seen:
+            break
+        seen.add(nxt)
+        page += 1
+        print(f"  following next page -> {nxt}")
+        channel = ET.fromstring(fetch(nxt)).find("channel")
+        if channel is None:
+            break
+        more = channel.findall("item")
+        print(f"  page {page}: {len(more)} <item> entries")
+        items.extend(more)
+
+    # Pages can overlap - keep the first copy of each guid
+    unique, seen_ids = [], set()
+    for it in items:
+        g = (it.findtext("guid") or it.findtext("title") or "").strip()
+        if g and g in seen_ids:
+            continue
+        seen_ids.add(g)
+        unique.append(it)
+    if len(unique) != len(items):
+        print(f"  removed {len(items) - len(unique)} duplicate entries across pages")
+    print(f"  feed delivered {len(unique)} episodes in total")
+    return first, unique
 
 
 def slug(name):
@@ -173,10 +226,7 @@ def build():
     print(f"Loaded {len(cats)} categories + catch-all “{fallback}” from categories.tsv")
     print(f"Fetching {FEED_URL}")
 
-    root = ET.fromstring(fetch(FEED_URL))
-    channel = root.find("channel")
-    if channel is None:
-        sys.exit("No <channel> in the feed — check the feed URL.")
+    channel, feed_items = load_all_items(FEED_URL)
 
     img_el = channel.find("itunes:image", NS)
     podcast = {
@@ -187,7 +237,7 @@ def build():
     }
 
     episodes, skipped, unnumbered, ambiguous = [], 0, [], []
-    for item in channel.findall("item"):
+    for item in feed_items:
         enc = item.find("enclosure")
         url = enc.get("url") if enc is not None else ""
         if not url:
