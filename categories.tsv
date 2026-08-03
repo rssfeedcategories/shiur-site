@@ -1,0 +1,30 @@
+# Category shelf for the site.
+#   column 1 = category name shown on the site
+#   column 2 = filter words, separated by |  (a title matching any of them lands here)
+# Columns are separated by a TAB.
+#
+# When a title matches more than one category, the LONGEST matching filter word wins.
+# That keeps a short word like דף from stealing titles that belong elsewhere.
+# The row with no filter words is the catch-all for titles that match nothing.
+#
+# Edit this file to change the shelf — no code changes needed.
+#
+# CATEGORY NAME	FILTER WORDS
+משנה ברורה	משנה ברורה
+ספר משלי	ספר משלי
+שיעור יומי - גמרא	דף
+חובות הלבבות	חובות הלבבות
+שערי תשובה	שערי תשובה
+ד"ת על הפרשה	ד"ת על הפרשה
+חפץ חיים	חפץ חיים
+כד הקמח לרבינו בחיי	כד הקמח
+ספר הכוזרי	ספר הכוזרי
+ספר קהלת	ספר קהלת
+עניני שבת קודש	עניני שבת קודש|שב"ק
+שיעור כללי	כללי
+שלום בית	שלום בית
+שמירת הלשון	שמירת הלשון
+תפילה	תפילה
+הכנה ליו"ט	הכנה ליו"ט
+מבחר הפנינים	מבחר הפנינים
+general	
