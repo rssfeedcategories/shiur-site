@@ -31,10 +31,16 @@ jobs:
         run: |
           git config user.name  "feed-bot"
           git config user.email "feed-bot@users.noreply.github.com"
-          if [ -n "$(git status --porcelain data)" ]; then
-            git add data
-            git commit -m "Refresh episode data ($(date -u '+%Y-%m-%d %H:%M UTC'))"
-            git push
-          else
+          if [ -z "$(git status --porcelain data)" ]; then
             echo "Feed unchanged - nothing to commit."
+            exit 0
           fi
+          git add data
+          git commit -m "Refresh episode data ($(date -u '+%Y-%m-%d %H:%M UTC'))"
+          for i in 1 2 3; do
+            if git push; then exit 0; fi
+            echo "Push rejected - syncing and retrying ($i of 3)"
+            git pull --rebase origin main
+          done
+          echo "Could not push after 3 attempts"
+          exit 1
