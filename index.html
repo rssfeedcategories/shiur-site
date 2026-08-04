@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Birkas Avrohom — Daily Shiurim</title>
 <meta name="description" content="Daily shiurim from Rabbi Gips. Browse by sefer, pick up where you left off.">
-<meta name="theme-color" content="#16202E">
+<meta name="theme-color" content="#04123D">
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#16202E; --shelf:#1F2C3D; --raised:#26364B; --edge:#31435A;
-  --parchment:#EDE6D8; --muted:#8DA0B8; --brass:#C9A24B; --sage:#7E9C8B;
+  --ink:#04123D; --shelf:#0C2154; --raised:#132D66; --edge:#1E3D78;
+  --parchment:#F1F5FB; --muted:#93AAD0; --brass:#FDC25C; --sage:#8FB6E8;
   --shadow:0 1px 3px rgba(0,0,0,.4);
   --serif:'Frank Ruhl Libre',Georgia,serif;
   --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
@@ -21,9 +21,9 @@
   --bar:76px;
 }
 html[data-theme="light"]{
-  --ink:#EDEBE4; --shelf:#FFFFFF; --raised:#F7F5F0; --edge:#DAD5C9;
-  --parchment:#1A2432; --muted:#5A6B80; --brass:#96701C; --sage:#4A6A58;
-  --shadow:0 1px 3px rgba(26,36,50,.10);
+  --ink:#EEF3FA; --shelf:#FFFFFF; --raised:#F6F9FD; --edge:#D3DFEF;
+  --parchment:#04123D; --muted:#54688C; --brass:#9C6E12; --sage:#2F5C93;
+  --shadow:0 1px 3px rgba(4,18,61,.12);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -203,24 +203,30 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* ---------- episode sheet ---------- */
-.sheet{position:fixed;inset:0;z-index:60;background:var(--ink);overflow-y:auto;
-  padding-bottom:calc(var(--bar) + 28px);animation:rise .2s ease-out}
-@keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
-.sheet-top{position:sticky;top:0;z-index:2;background:var(--ink);border-bottom:1px solid var(--edge);
-  display:flex;align-items:center;gap:12px;padding:12px 18px}
+.scrim{position:fixed;inset:0;z-index:59;background:rgba(2,9,30,.55);
+  animation:fade .2s ease-out;backdrop-filter:blur(2px)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--shelf);
+  max-height:74vh;overflow-y:auto;border-radius:18px 18px 0 0;
+  border-top:1px solid var(--edge);box-shadow:0 -8px 30px rgba(2,9,30,.45);
+  padding-bottom:calc(env(safe-area-inset-bottom) + 20px);animation:rise .24s cubic-bezier(.2,.8,.3,1)}
+@keyframes rise{from{transform:translateY(100%)}to{transform:none}}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--edge);margin:9px auto 0}
+.sheet-top{position:sticky;top:0;z-index:2;background:var(--shelf);border-bottom:1px solid var(--edge);
+  display:flex;align-items:center;gap:12px;padding:8px 18px 12px}
 .sheet-top b{font-size:.8rem;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.sheet-in{max-width:760px;margin:0 auto;padding:24px 18px}
+.sheet-in{max-width:760px;margin:0 auto;padding:18px 18px 4px}
 .sheet-cat{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin:0 0 10px}
-.sheet-title{font-family:var(--serif);font-size:1.4rem;line-height:1.5;margin:0 0 12px}
-.sheet-meta{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--muted);font-size:.85rem;margin:0 0 24px}
+.sheet-title{font-family:var(--serif);font-size:1.2rem;line-height:1.5;margin:0 0 10px}
+.sheet-meta{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--muted);font-size:.85rem;margin:0 0 16px}
 .sheet-meta .n{font-family:var(--mono);color:var(--brass)}
 .big-play{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
-  background:var(--brass);color:#16202E;border-radius:10px;padding:15px;font-weight:600;font-size:1rem}
+  background:var(--brass);color:#04123D;border-radius:10px;padding:15px;font-weight:600;font-size:1rem}
 .jump{display:flex;align-items:center;justify-content:center;gap:26px;margin:18px 0 6px}
 .jump button{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem}
 .sheet-bar{margin:20px 0 6px}
 .sheet-time{display:flex;justify-content:space-between;color:var(--muted);
-  font-family:var(--mono);font-size:.75rem;margin-bottom:26px}
+  font-family:var(--mono);font-size:.75rem;margin-bottom:18px}
 .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .act{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px;text-decoration:none;
   background:var(--raised);border:1px solid var(--edge);border-radius:10px;color:var(--muted);font-size:.78rem}
@@ -350,8 +356,8 @@ function epRow(ep) {
   const p = pct(ep), done = p >= 92, playing = S.current === id;
   const bits = [];
   if (ep.n != null) bits.push(`<span class="n">#${ep.n}</span>`);
-  if (ep.d) bits.push(esc(niceDate(ep.d)));
-  if (ep.s) bits.push(hhmm(ep.s));
+  if (ep.d) bits.push(`<span>${esc(niceDate(ep.d))}</span>`);
+  if (ep.s) bits.push(`<span>${hhmm(ep.s)}</span>`);
   return `<button class="ep${done ? " is-done" : ""}${playing ? " is-current" : ""}" data-open="${esc(id)}">
     <span class="ep-play" data-play="${esc(id)}">${playing && !audio.paused
       ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
@@ -415,7 +421,7 @@ function renderHome() {
   // Newest
   html += `<section class="sec"><div class="sec-head"><h2>Newest</h2>
     <span>${ix.episodeCount.toLocaleString()} total</span></div>
-    ${ix.recent.slice(0, 8).map(epRow).join("")}</section>`;
+    ${ix.recent.slice(0, 4).map(epRow).join("")}</section>`;
 
   // The shelf
   const max = Math.max(...ix.categories.map(c => c.count));
@@ -554,15 +560,16 @@ async function openSheet(id) {
   host.id = "sheet";
 
   if (!ep) {
-    host.innerHTML = `<div class="sheet-top"><button class="icon-btn" data-close>&#8595;</button><b>Episode</b></div>
+    host.innerHTML = `<div class="grab"></div><div class="sheet-top"><button class="icon-btn" data-close>&#8595;</button><b>Episode</b></div>
       <div class="sheet-in"><div class="msg"><h3>Shiur not found</h3>
       <p>It may have been renamed or removed since this link was made.</p></div></div>`;
   } else {
     const bits = [];
     if (ep.n != null) bits.push(`<span class="n">SHIUR #${ep.n}</span>`);
-    if (ep.d) bits.push(esc(niceDate(ep.d)));
-    if (ep.s) bits.push(hhmm(ep.s));
+    if (ep.d) bits.push(`<span>${esc(niceDate(ep.d))}</span>`);
+    if (ep.s) bits.push(`<span>${hhmm(ep.s)}</span>`);
     host.innerHTML = `
+      <div class="grab"></div>
       <div class="sheet-top"><button class="icon-btn" data-close aria-label="Minimise">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10l6 6 6-6"/></svg>
       </button><b>Now playing</b></div>
@@ -585,14 +592,19 @@ async function openSheet(id) {
         </div>
       </div>`;
   }
+  if (!document.querySelector(".scrim")) {
+    const sc = document.createElement("div");
+    sc.className = "scrim";
+    sc.setAttribute("data-close", "");
+    document.body.appendChild(sc);
+  }
   if (!host.parentNode) document.body.appendChild(host);
   host.scrollTop = 0;
   paintSheet();
 }
 
 function closeSheet() {
-  const el = document.querySelector(".sheet");
-  if (el) el.remove();
+  document.querySelectorAll(".sheet, .scrim").forEach(el => el.remove());
 }
 
 function paintSheet() {
@@ -650,6 +662,7 @@ function play(id) {
 
   const saved = S.pos[epid];
   const resumeAt = saved && saved.d && saved.p / saved.d < 0.95 ? saved.p : 0;
+  audio.addEventListener("loadedmetadata", () => { mediaPosition(); }, false);
   audio.addEventListener("loadedmetadata", () => {
     if (resumeAt > 5) audio.currentTime = resumeAt;
   }, { once: true });
@@ -662,9 +675,13 @@ function play(id) {
       title: ep.t,
       artist: ep.ser || "Rabbi Gips",
       album: (S.index && S.index.podcast.title) || "Birkas Avrohom",
-      artwork: S.index && S.index.podcast.image
-        ? [{ src: S.index.podcast.image, sizes: "512x512" }] : []
+      artwork: [
+        { src: "icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "icon-512.png", sizes: "512x512", type: "image/png" },
+        { src: "cover.jpg", sizes: "1400x1400", type: "image/jpeg" }
+      ]
     });
+    mediaControls();
   }
   paint();
 }
@@ -686,8 +703,52 @@ function savePos() {
   store.set("pos", S.pos);
 }
 
+/* Buttons in the notification shade / lock screen.  Without explicit handlers
+   the phone can pause us but cannot start us again. */
+let mediaWired = false;
+function mediaControls() {
+  if (!("mediaSession" in navigator) || mediaWired) return;
+  const ms = navigator.mediaSession;
+  const set = (name, fn) => { try { ms.setActionHandler(name, fn); } catch (e) {} };
+
+  set("play", () => { audio.play().then(paint).catch(() => {}); });
+  set("pause", () => { audio.pause(); paint(); });
+  set("stop", () => { audio.pause(); paint(); });
+  set("seekbackward", d => {
+    audio.currentTime = Math.max(0, audio.currentTime - ((d && d.seekOffset) || 15));
+  });
+  set("seekforward", d => {
+    audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + ((d && d.seekOffset) || 30));
+  });
+  set("previoustrack", () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
+  set("nexttrack", () => {
+    audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 30);
+  });
+  set("seekto", d => {
+    if (d && d.seekTime != null) audio.currentTime = d.seekTime;
+  });
+  mediaWired = true;
+}
+
+/* Keeps the scrubber on the lock screen in step with playback. */
+function mediaPosition() {
+  if (!("mediaSession" in navigator) || !navigator.mediaSession.setPositionState) return;
+  if (!audio.duration || !isFinite(audio.duration)) return;
+  try {
+    navigator.mediaSession.setPositionState({
+      duration: audio.duration,
+      playbackRate: audio.playbackRate || 1,
+      position: Math.min(audio.currentTime, audio.duration)
+    });
+  } catch (e) {}
+}
+
 function paint() {
   paintSheet();
+  if ("mediaSession" in navigator) {
+    navigator.mediaSession.playbackState = S.current && !audio.paused ? "playing" : "paused";
+  }
+  mediaPosition();
   const playing = S.current && !audio.paused;
   $("#icoPlay").hidden = !!playing;
   $("#icoPause").hidden = !playing;
@@ -772,7 +833,8 @@ audio.addEventListener("timeupdate", () => {
     $("#pCur").textContent = hhmm(audio.currentTime);
     $("#pDur").textContent = hhmm(audio.duration);
   }
-  if (Date.now() - lastSave > 4000) { lastSave = Date.now(); savePos(); }
+  if (!dragging) paintSheet();
+  if (Date.now() - lastSave > 4000) { lastSave = Date.now(); savePos(); mediaPosition(); }
 });
 audio.addEventListener("play", paint);
 audio.addEventListener("pause", () => { savePos(); paint(); });
@@ -791,7 +853,7 @@ $("#clear").onclick = () => { q.value = ""; $("#clear").hidden = true; route(); 
 $("#theme").onclick = () => {
   const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
   document.documentElement.dataset.theme = next;
-  document.querySelector('meta[name="theme-color"]').content = next === "light" ? "#EDEBE4" : "#16202E";
+  document.querySelector('meta[name="theme-color"]').content = next === "light" ? "#EEF3FA" : "#04123D";
   store.set("theme", next);
 };
 
@@ -800,7 +862,7 @@ window.addEventListener("hashchange", () => { if (!q.value) route(); });
 /* ---------- boot ---------- */
 document.documentElement.dataset.theme = store.get("theme", "dark");
 if (store.get("theme", "dark") === "light")
-  document.querySelector('meta[name="theme-color"]').content = "#EDEBE4";
+  document.querySelector('meta[name="theme-color"]').content = "#EEF3FA";
 $("#rate").textContent = store.get("rate", 1) + "×";
 
 (async function init() {
