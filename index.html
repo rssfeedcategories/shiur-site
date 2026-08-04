@@ -201,6 +201,35 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
 }
 @media (min-width:620px){.shelf-grid{grid-template-columns:1fr 1fr}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- episode sheet ---------- */
+.sheet{position:fixed;inset:0;z-index:60;background:var(--ink);overflow-y:auto;
+  padding-bottom:calc(var(--bar) + 28px);animation:rise .2s ease-out}
+@keyframes rise{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+.sheet-top{position:sticky;top:0;z-index:2;background:var(--ink);border-bottom:1px solid var(--edge);
+  display:flex;align-items:center;gap:12px;padding:12px 18px}
+.sheet-top b{font-size:.8rem;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.sheet-in{max-width:760px;margin:0 auto;padding:24px 18px}
+.sheet-cat{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin:0 0 10px}
+.sheet-title{font-family:var(--serif);font-size:1.4rem;line-height:1.5;margin:0 0 12px}
+.sheet-meta{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--muted);font-size:.85rem;margin:0 0 24px}
+.sheet-meta .n{font-family:var(--mono);color:var(--brass)}
+.big-play{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  background:var(--brass);color:#16202E;border-radius:10px;padding:15px;font-weight:600;font-size:1rem}
+.jump{display:flex;align-items:center;justify-content:center;gap:26px;margin:18px 0 6px}
+.jump button{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem}
+.sheet-bar{margin:20px 0 6px}
+.sheet-time{display:flex;justify-content:space-between;color:var(--muted);
+  font-family:var(--mono);font-size:.75rem;margin-bottom:26px}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.act{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 6px;text-decoration:none;
+  background:var(--raised);border:1px solid var(--edge);border-radius:10px;color:var(--muted);font-size:.78rem}
+.act.on{color:var(--brass);border-color:var(--brass)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--bar) + 22px);z-index:80;
+  background:var(--raised);border:1px solid var(--edge);color:var(--parchment);
+  padding:11px 18px;border-radius:8px;font-size:.85rem;box-shadow:var(--shadow)}
+.p-info{cursor:pointer}
+.fav-mark{color:var(--brass);flex:none}
 </style>
 </head>
 <body>
@@ -232,7 +261,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
 <div class="player" id="player" role="region" aria-label="Now playing">
   <input class="seek" id="seek" type="range" min="0" max="1000" value="0" aria-label="Seek">
   <div class="p-row">
-    <div class="p-info">
+    <div class="p-info" id="pInfo">
       <p class="p-title he" id="pTitle">—</p>
       <div class="p-time"><span id="pCur">0:00</span> / <span id="pDur">0:00</span></div>
     </div>
@@ -280,9 +309,12 @@ const S = {
   cats: {},         // slug -> loaded category file
   view: { name: "home" },
   pos: store.get("pos", {}),      // id -> {p: seconds, d: duration, t, ser, n, u, at}
+  fav: store.get("fav", {}),      // id -> {t, ser, n, u, d, s, at}
+  lastHash: "",
   current: null
 };
 
+let searchReady = null;
 const $ = s => document.querySelector(s);
 const audio = $("#audio");
 
@@ -320,8 +352,8 @@ function epRow(ep) {
   if (ep.n != null) bits.push(`<span class="n">#${ep.n}</span>`);
   if (ep.d) bits.push(esc(niceDate(ep.d)));
   if (ep.s) bits.push(hhmm(ep.s));
-  return `<button class="ep${done ? " is-done" : ""}${playing ? " is-current" : ""}" data-play="${esc(id)}">
-    <span class="ep-play">${playing && !audio.paused
+  return `<button class="ep${done ? " is-done" : ""}${playing ? " is-current" : ""}" data-open="${esc(id)}">
+    <span class="ep-play" data-play="${esc(id)}">${playing && !audio.paused
       ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
       : '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>'}</span>
     <span class="ep-body">
@@ -329,6 +361,7 @@ function epRow(ep) {
       <span class="ep-sub">${bits.join("")}</span>
       ${p > 0 && !done ? `<span class="ep-prog"><i style="width:${p}%"></i></span>` : ""}
     </span>
+    ${S.fav[id] ? '<svg class="fav-mark" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.7-7.5-9.8A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7.5 3.2C19.5 16.3 12 21 12 21z"/></svg>' : ""}
     ${done ? '<svg class="tick" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.5 5.5L20 7"/></svg>' : ""}
   </button>`;
 }
@@ -368,6 +401,15 @@ function renderHome() {
           <span class="r-meta"><span>${p}% done</span><span>${hhmm(r.d - r.p)} left</span></span>
         </button>`;
       }).join("") + `</div></section>`;
+  }
+
+  // Saved
+  const saved = Object.entries(S.fav).sort((a, b) => (b[1].at || 0) - (a[1].at || 0));
+  if (saved.length) {
+    html += `<section class="sec"><div class="sec-head"><h2>Saved</h2>
+      <span>${saved.length}</span></div>` +
+      saved.slice(0, 12).map(([id, r]) => epRow({ id, t: r.t, d: r.d, s: r.s, ser: r.ser, n: r.n, u: r.u })).join("") +
+      `</section>`;
   }
 
   // Newest
@@ -451,9 +493,129 @@ function renderSearch(term) {
 /* ---------- routing ---------- */
 function route() {
   const h = location.hash.replace(/^#/, "");
+  if (h.startsWith("ep/")) { openSheet(h.slice(3)); return; }   // sheet sits over the list
+  closeSheet();
+  S.lastHash = h;
   if (h.startsWith("cat/")) { S.view = { name: "cat", slug: h.slice(4) }; renderCat(S.view.slug); }
   else { S.view = { name: "home" }; renderHome(); }
   window.scrollTo(0, 0);
+}
+
+/* ---------- favourites ---------- */
+function toggleFav(id) {
+  if (S.fav[id]) delete S.fav[id];
+  else {
+    const e = findEp(id);
+    if (!e) return;
+    S.fav[id] = { t: e.t, ser: e.ser, n: e.n, u: e.u, d: e.d, s: e.s, at: Date.now() };
+  }
+  store.set("fav", S.fav);
+}
+
+function toast(msg) {
+  const old = document.querySelector(".toast");
+  if (old) old.remove();
+  const el = document.createElement("div");
+  el.className = "toast";
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2200);
+}
+
+function shareLink(id, title) {
+  const url = location.origin + location.pathname + "#ep/" + id;
+  if (navigator.share) {
+    navigator.share({ title: title || "Shiur", url }).catch(() => {});
+    return;
+  }
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url)
+      .then(() => toast("Link copied"))
+      .catch(() => prompt("Copy this link", url));
+  } else {
+    prompt("Copy this link", url);
+  }
+}
+
+/* ---------- episode sheet ---------- */
+const ICON = {
+  play: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>',
+  pause: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
+  down: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>',
+  share: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12"/><path d="M8 8l4-4 4 4"/><path d="M5 14v5h14v-5"/></svg>',
+  heart: f => `<svg width="19" height="19" viewBox="0 0 24 24" fill="${f ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5S4.5 15.8 4.5 10.7A4.2 4.2 0 0 1 12 7.5a4.2 4.2 0 0 1 7.5 3.2c0 5.1-7.5 9.8-7.5 9.8z"/></svg>`
+};
+
+async function openSheet(id) {
+  if (!S.search) { try { await searchReady; } catch (e) {} }
+  const ep = findEp(id);
+  const host = document.querySelector(".sheet") || document.createElement("div");
+  host.className = "sheet";
+  host.id = "sheet";
+
+  if (!ep) {
+    host.innerHTML = `<div class="sheet-top"><button class="icon-btn" data-close>&#8595;</button><b>Episode</b></div>
+      <div class="sheet-in"><div class="msg"><h3>Shiur not found</h3>
+      <p>It may have been renamed or removed since this link was made.</p></div></div>`;
+  } else {
+    const bits = [];
+    if (ep.n != null) bits.push(`<span class="n">SHIUR #${ep.n}</span>`);
+    if (ep.d) bits.push(esc(niceDate(ep.d)));
+    if (ep.s) bits.push(hhmm(ep.s));
+    host.innerHTML = `
+      <div class="sheet-top"><button class="icon-btn" data-close aria-label="Minimise">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10l6 6 6-6"/></svg>
+      </button><b>Now playing</b></div>
+      <div class="sheet-in">
+        ${ep.ser ? `<p class="sheet-cat he">${esc(ep.ser)}</p>` : ""}
+        <h2 class="sheet-title he">${esc(ep.t)}</h2>
+        <div class="sheet-meta">${bits.join("")}</div>
+        <button class="big-play" data-play="${esc(id)}"><span id="sIco"></span><span id="sLbl">Play</span></button>
+        <div class="jump">
+          <button id="sBack"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4L5 9l6 5"/><path d="M5 9h8a6 6 0 1 1 0 12H8"/></svg>15s</button>
+          <button id="sRate">1&times;</button>
+          <button id="sFwd"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4l6 5-6 5"/><path d="M19 9h-8a6 6 0 1 0 0 12h5"/></svg>30s</button>
+        </div>
+        <div class="bar-track sheet-bar"><span class="bar-fill" id="sFill" style="width:0%"></span></div>
+        <div class="sheet-time"><span id="sCur">0:00</span><span id="sDur">${hhmm(ep.s)}</span></div>
+        <div class="acts">
+          <a class="act" href="${esc(ep.u)}" download target="_blank" rel="noopener">${ICON.down}Download</a>
+          <button class="act" data-share="${esc(id)}">${ICON.share}Share</button>
+          <button class="act${S.fav[id] ? " on" : ""}" data-fav="${esc(id)}">${ICON.heart(!!S.fav[id])}${S.fav[id] ? "Saved" : "Save"}</button>
+        </div>
+      </div>`;
+  }
+  if (!host.parentNode) document.body.appendChild(host);
+  host.scrollTop = 0;
+  paintSheet();
+}
+
+function closeSheet() {
+  const el = document.querySelector(".sheet");
+  if (el) el.remove();
+}
+
+function paintSheet() {
+  const el = document.querySelector(".sheet");
+  if (!el) return;
+  const idEl = el.querySelector("[data-play]");
+  if (!idEl) return;
+  const id = idEl.dataset.play;
+  const live = S.current === id;
+  const ico = el.querySelector("#sIco"), lbl = el.querySelector("#sLbl");
+  if (ico) ico.innerHTML = live && !audio.paused ? ICON.pause : ICON.play;
+  if (lbl) lbl.textContent = live ? (audio.paused ? "Resume" : "Pause") : "Play";
+
+  const rate = el.querySelector("#sRate");
+  if (rate) rate.innerHTML = (store.get("rate", 1)) + "&times;";
+
+  const saved = S.pos[id];
+  const dur = live && audio.duration ? audio.duration : (saved && saved.d) || 0;
+  const cur = live ? audio.currentTime : (saved && saved.p) || 0;
+  const fill = el.querySelector("#sFill"), c = el.querySelector("#sCur"), d = el.querySelector("#sDur");
+  if (fill) fill.style.width = (dur ? Math.min(100, cur / dur * 100) : 0) + "%";
+  if (c) c.textContent = hhmm(cur);
+  if (d && dur) d.textContent = hhmm(dur);
 }
 
 /* ---------- player ---------- */
@@ -525,6 +687,7 @@ function savePos() {
 }
 
 function paint() {
+  paintSheet();
   const playing = S.current && !audio.paused;
   $("#icoPlay").hidden = !!playing;
   $("#icoPause").hidden = !playing;
@@ -538,6 +701,34 @@ function paint() {
 document.addEventListener("click", e => {
   const p = e.target.closest("[data-play]");
   if (p) { play(p.dataset.play); return; }
+
+  if (e.target.closest("#pInfo")) {
+    if (S.current) location.hash = "ep/" + S.current;
+    return;
+  }
+
+  const o = e.target.closest("[data-open]");
+  if (o) { location.hash = "ep/" + o.dataset.open; return; }
+
+  if (e.target.closest("[data-close]")) {
+    if (history.length > 1) history.back(); else location.hash = S.lastHash || "";
+    return;
+  }
+
+  const shr = e.target.closest("[data-share]");
+  if (shr) { const ep = findEp(shr.dataset.share); shareLink(shr.dataset.share, ep && ep.t); return; }
+
+  const fv = e.target.closest("[data-fav]");
+  if (fv) {
+    toggleFav(fv.dataset.fav);
+    openSheet(fv.dataset.fav);
+    toast(S.fav[fv.dataset.fav] ? "Saved" : "Removed");
+    return;
+  }
+
+  if (e.target.closest("#sBack")) { audio.currentTime = Math.max(0, audio.currentTime - 15); return; }
+  if (e.target.closest("#sFwd"))  { audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 30); return; }
+  if (e.target.closest("#sRate")) { document.querySelector("#rate").click(); paintSheet(); return; }
 
   const c = e.target.closest("[data-cat]");
   if (c) { location.hash = "cat/" + c.dataset.cat; return; }
@@ -629,7 +820,7 @@ $("#rate").textContent = store.get("rate", 1) + "×";
   document.title = (S.index.podcast.title || "Birkas Avrohom") + " — Daily Shiurim";
   route();
 
-  fetch("data/search.json").then(r => r.json()).then(d => {
+  searchReady = fetch("data/search.json").then(r => r.json()).then(d => {
     S.search = d;
     if (q.value) renderSearch(q.value);
   }).catch(() => {});
