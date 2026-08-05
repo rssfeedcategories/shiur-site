@@ -170,10 +170,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
 .player.up{transform:translateY(0)}
 .seek{
   -webkit-appearance:none;appearance:none;display:block;width:100%;height:18px;
-  background:none;margin:-9px 0 -6px;cursor:pointer;
+  margin:-9px 0 -6px;cursor:pointer;
+  /* the played part is gold, the rest dim - --p is set as playback moves */
+  background:linear-gradient(to right,
+    var(--gold) 0 calc(var(--p,0) * 1%),
+    var(--edge) calc(var(--p,0) * 1%) 100%) center/100% 3px no-repeat;
 }
-.seek::-webkit-slider-runnable-track{height:3px;background:var(--edge)}
-.seek::-moz-range-track{height:3px;background:var(--edge)}
+.seek::-webkit-slider-runnable-track{height:3px;background:transparent}
+.seek::-moz-range-track{height:3px;background:transparent}
+.seek::-moz-range-progress{height:3px;background:var(--gold)}
 .seek::-webkit-slider-thumb{
   -webkit-appearance:none;width:13px;height:13px;border-radius:50%;
   background:var(--gold);margin-top:-5px;
@@ -480,7 +485,9 @@ async function renderCat(slug) {
     <h2 class="view-title he">${esc(cat.name)}</h2>
     <p class="view-sub">${total} shiurim · ${cat.series.length} ${cat.series.length === 1 ? "series" : "series"}</p>
     ${cat.series.map((s, i) => {
-      const nextUp = s.episodes.find(e => !isDone(e));
+      // only a resume marker once you've actually started the series
+      const started = s.episodes.some(e => isDone(e) || S.pos[e.id]);
+      const nextUp = started ? s.episodes.find(e => !isDone(e)) : null;
       return `<div class="series${i === openIdx ? " open" : ""}">
         <button class="series-head" data-series="${i}">
           <svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
@@ -845,8 +852,14 @@ function mediaPosition() {
   } catch (e) {}
 }
 
+function seekFill() {
+  const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
+  seek.style.setProperty("--p", pct.toFixed(2));
+}
+
 function paint() {
   paintSheet();
+  seekFill();
   if ("mediaSession" in navigator) {
     navigator.mediaSession.playbackState = S.current && !audio.paused ? "playing" : "paused";
   }
@@ -932,6 +945,7 @@ const seek = $("#seek");
 let dragging = false;
 seek.addEventListener("input", () => {
   dragging = true;
+  seek.style.setProperty("--p", (seek.value / 10).toFixed(2));   // follow the thumb
   if (audio.duration) $("#pCur").textContent = hhmm(seek.value / 1000 * audio.duration);
 });
 seek.addEventListener("change", () => {
@@ -945,10 +959,10 @@ audio.addEventListener("timeupdate", () => {
     $("#pCur").textContent = hhmm(audio.currentTime);
     $("#pDur").textContent = hhmm(audio.duration);
   }
-  if (!dragging) paintSheet();
+  if (!dragging) { paintSheet(); seekFill(); }
   if (Date.now() - lastSave > 4000) { lastSave = Date.now(); savePos(); mediaPosition(); }
 });
-audio.addEventListener("seeked", () => { paintSheet(); savePos(); });
+audio.addEventListener("seeked", () => { paintSheet(); seekFill(); savePos(); });
 audio.addEventListener("durationchange", paintSheet);
 audio.addEventListener("play", paint);
 audio.addEventListener("pause", () => { savePos(); paint(); });

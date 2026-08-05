@@ -1,6 +1,6 @@
 /* Caches the shell so the site opens instantly and works offline.
    Episode data is always fetched fresh, then falls back to cache. */
-const SHELL = "ba-shell-v7";
+const SHELL = "ba-shell-v9";
 const DATA  = "ba-data-v1";
 const ASSETS = ["./", "./index.html", "./manifest.json"];
 
