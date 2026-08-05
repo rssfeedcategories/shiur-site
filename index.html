@@ -224,7 +224,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
   background:var(--gold);color:#08194A;border-radius:10px;padding:15px;font-weight:600;font-size:1rem}
 .jump{display:flex;align-items:center;justify-content:center;gap:26px;margin:18px 0 6px}
 .jump button{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem}
-.sheet-bar{margin:20px 0 6px}
+.sheet-bar{position:relative;height:6px;margin:22px 0 8px;overflow:visible;
+  touch-action:none;cursor:pointer}
+.sheet-bar::before{content:"";position:absolute;left:0;right:0;top:-16px;bottom:-16px}
+.sheet-bar .bar-fill{position:relative;overflow:visible}
+.sheet-bar .bar-fill::after{content:"";position:absolute;right:-7px;top:50%;
+  width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--gold);
+  box-shadow:0 1px 4px rgba(2,9,30,.5)}
+.sheet-bar.dragging .bar-fill{transition:none}
 .sheet-time{display:flex;justify-content:space-between;color:var(--muted);
   font-family:var(--mono);font-size:.75rem;margin-bottom:18px}
 .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -600,7 +607,65 @@ async function openSheet(id) {
   }
   if (!host.parentNode) document.body.appendChild(host);
   host.scrollTop = 0;
+  wireSheetScrub(host);
   paintSheet();
+}
+
+/* Drag-to-seek on the sheet's progress bar. */
+let sheetDrag = false;
+
+function sheetSeekRatio(ev, bar) {
+  const r = bar.getBoundingClientRect();
+  const x = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+  return Math.max(0, Math.min(1, x / r.width));
+}
+
+function sheetSeekTo(ratio, id) {
+  if (S.current !== id) {                 // not the loaded shiur yet - start it here
+    play(id);
+    const jump = () => {
+      if (audio.duration) audio.currentTime = ratio * audio.duration;
+      audio.removeEventListener("loadedmetadata", jump);
+    };
+    audio.addEventListener("loadedmetadata", jump);
+    return;
+  }
+  if (audio.duration) audio.currentTime = ratio * audio.duration;
+}
+
+function wireSheetScrub(host) {
+  const bar = host.querySelector(".sheet-bar");
+  const btn = host.querySelector("[data-play]");
+  if (!bar || !btn) return;
+  const id = btn.dataset.play;
+  const fill = bar.querySelector(".bar-fill");
+
+  const preview = r => { if (fill) fill.style.width = (r * 100) + "%"; };
+
+  const move = ev => {
+    if (!sheetDrag) return;
+    ev.preventDefault();
+    preview(sheetSeekRatio(ev, bar));
+  };
+  const up = ev => {
+    if (!sheetDrag) return;
+    sheetDrag = false;
+    bar.classList.remove("dragging");
+    sheetSeekTo(sheetSeekRatio(ev, bar), id);
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", up);
+    window.removeEventListener("pointercancel", up);
+  };
+
+  bar.addEventListener("pointerdown", ev => {
+    ev.preventDefault();
+    sheetDrag = true;
+    bar.classList.add("dragging");
+    preview(sheetSeekRatio(ev, bar));
+    window.addEventListener("pointermove", move, { passive: false });
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", up);
+  });
 }
 
 function closeSheet() {
@@ -609,7 +674,7 @@ function closeSheet() {
 
 function paintSheet() {
   const el = document.querySelector(".sheet");
-  if (!el) return;
+  if (!el || sheetDrag) return;
   const idEl = el.querySelector("[data-play]");
   if (!idEl) return;
   const id = idEl.dataset.play;
