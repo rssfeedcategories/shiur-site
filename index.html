@@ -227,9 +227,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
 .jump{display:flex;align-items:center;justify-content:center;gap:20px;margin:18px 0 6px}
 .jump button{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem}
 .sheet-bar{position:relative;height:6px;margin:22px 0 8px;overflow:visible;
-  touch-action:none;cursor:pointer}
+  touch-action:none;cursor:pointer;background:color-mix(in srgb,var(--edge) 85%,transparent)}
 .sheet-bar::before{content:"";position:absolute;left:0;right:0;top:-16px;bottom:-16px}
-.sheet-bar .bar-fill{position:relative;overflow:visible}
+.sheet-bar .bar-fill{position:relative;overflow:visible;background:var(--gold);min-width:2px}
 .sheet-bar .bar-fill::after{content:"";position:absolute;right:-7px;top:50%;
   width:14px;height:14px;margin-top:-7px;border-radius:50%;background:var(--gold);
   box-shadow:0 1px 4px rgba(2,9,30,.5)}
@@ -722,7 +722,11 @@ function paintSheet() {
   if (rate) rate.innerHTML = (store.get("rate", 1)) + "&times;";
 
   const saved = S.pos[id];
-  const dur = live && audio.duration ? audio.duration : (saved && saved.d) || 0;
+  const known = findEp(id);
+  // duration can come from the audio element, the saved position, or the feed -
+  // whichever we actually have, so the thumb never sticks at zero
+  const dur = (live && isFinite(audio.duration) && audio.duration)
+    || (saved && saved.d) || (known && known.s) || 0;
   const cur = live ? audio.currentTime : (saved && saved.p) || 0;
   const fill = el.querySelector("#sFill"), c = el.querySelector("#sCur"), d = el.querySelector("#sDur");
   if (fill) fill.style.width = (dur ? Math.min(100, cur / dur * 100) : 0) + "%";
@@ -944,6 +948,8 @@ audio.addEventListener("timeupdate", () => {
   if (!dragging) paintSheet();
   if (Date.now() - lastSave > 4000) { lastSave = Date.now(); savePos(); mediaPosition(); }
 });
+audio.addEventListener("seeked", () => { paintSheet(); savePos(); });
+audio.addEventListener("durationchange", paintSheet);
 audio.addEventListener("play", paint);
 audio.addEventListener("pause", () => { savePos(); paint(); });
 audio.addEventListener("ended", () => { savePos(); paint(); });
