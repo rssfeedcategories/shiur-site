@@ -35,6 +35,7 @@ body{
 }
 .he{font-family:var(--serif); direction:rtl; unicode-bidi:isolate; text-align:right}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
+[hidden]{display:none!important}
 :focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:3px}
 .wrap{max-width:760px;margin:0 auto;padding:0 18px}
 
@@ -168,8 +169,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
 }
 .player.up{transform:translateY(0)}
 .seek{
-  -webkit-appearance:none;appearance:none;display:block;width:100%;height:14px;
-  background:none;margin:-7px 0 -5px;cursor:pointer;
+  -webkit-appearance:none;appearance:none;display:block;width:100%;height:18px;
+  background:none;margin:-9px 0 -6px;cursor:pointer;
 }
 .seek::-webkit-slider-runnable-track{height:3px;background:var(--edge)}
 .seek::-moz-range-track{height:3px;background:var(--edge)}
@@ -178,14 +179,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
   background:var(--gold);margin-top:-5px;
 }
 .seek::-moz-range-thumb{width:13px;height:13px;border:none;border-radius:50%;background:var(--gold)}
-.p-row{display:flex;align-items:center;gap:12px;padding:10px 18px 12px;max-width:760px;margin:0 auto}
+.p-row{display:flex;align-items:center;gap:10px;padding:14px 16px 16px;max-width:760px;margin:0 auto}
 .p-info{flex:1;min-width:0}
-.p-title{font-size:15px;line-height:1.3;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.p-time{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px}
-.p-ctrl{display:flex;align-items:center;gap:6px;flex:none}
-.p-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.p-title{font-size:16px;line-height:1.35;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-time{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:4px}
+.p-ctrl{display:flex;align-items:center;gap:4px;flex:none}
+.p-btn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
 .p-btn:hover{color:var(--brass)}
-.p-main{width:46px;height:46px;background:var(--gold);color:#08194A}
+.p-btn:disabled{opacity:.3;cursor:default}
+.p-main{width:54px;height:54px;background:var(--gold);color:#08194A}
 .p-main:hover{color:var(--ink);filter:brightness(1.08)}
 .rate{
   font-family:var(--mono);font-size:12px;color:var(--muted);
@@ -222,7 +224,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
 .sheet-meta .n{font-family:var(--mono);color:var(--brass)}
 .big-play{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
   background:var(--gold);color:#08194A;border-radius:10px;padding:15px;font-weight:600;font-size:1rem}
-.jump{display:flex;align-items:center;justify-content:center;gap:26px;margin:18px 0 6px}
+.jump{display:flex;align-items:center;justify-content:center;gap:20px;margin:18px 0 6px}
 .jump button{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem}
 .sheet-bar{position:relative;height:6px;margin:22px 0 8px;overflow:visible;
   touch-action:none;cursor:pointer}
@@ -279,15 +281,21 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;pad
       <div class="p-time"><span id="pCur">0:00</span> / <span id="pDur">0:00</span></div>
     </div>
     <div class="p-ctrl">
+      <button class="p-btn" id="prevEp" aria-label="Previous shiur">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h2.4v14H7z"/><path d="M19 5v14L9.5 12z"/></svg>
+      </button>
       <button class="p-btn hide-sm" id="back15" aria-label="Back 15 seconds">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4L5 9l6 5"/><path d="M5 9h8a6 6 0 1 1 0 12H8"/></svg>
       </button>
       <button class="p-btn p-main" id="toggle" aria-label="Play">
         <svg id="icoPlay" width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg>
-        <svg id="icoPause" width="19" height="19" viewBox="0 0 24 24" fill="currentColor" hidden><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        <svg id="icoPause" width="19" height="19" viewBox="0 0 24 24" fill="currentColor" hidden="hidden"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
       </button>
       <button class="p-btn hide-sm" id="fwd30" aria-label="Forward 30 seconds">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4l6 5-6 5"/><path d="M19 9h-8a6 6 0 1 0 0 12h5"/></svg>
+      </button>
+      <button class="p-btn" id="nextEp" aria-label="Next shiur">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14.6 5H17v14h-2.4z"/><path d="M5 5v14l9.5-7z"/></svg>
       </button>
       <button class="rate" id="rate" aria-label="Playback speed">1×</button>
     </div>
@@ -323,6 +331,7 @@ const S = {
   view: { name: "home" },
   pos: store.get("pos", {}),      // id -> {p: seconds, d: duration, t, ser, n, u, at}
   fav: store.get("fav", {}),      // id -> {t, ser, n, u, d, s, at}
+  queue: [],                      // ids of the list the current shiur came from
   lastHash: "",
   current: null
 };
@@ -515,6 +524,30 @@ function route() {
 }
 
 /* ---------- favourites ---------- */
+/* Next / Previous follow whatever list you were looking at: the open series in a
+   sefer, your Saved rail, Newest, or search results. */
+function captureQueue(el) {
+  if (!el) return;
+  const scope = el.closest(".series-body") || el.closest(".sec") || $("#main");
+  if (!scope) return;
+  const ids = [...scope.querySelectorAll("[data-open]")].map(n => n.dataset.open);
+  if (ids.length) S.queue = ids;
+}
+
+function step(delta) {
+  const q = S.queue || [];
+  const i = q.indexOf(S.current);
+  if (i < 0) { toast("Nothing queued up"); return; }
+  const j = i + delta;
+  if (j < 0) { toast("Start of the list"); return; }
+  if (j >= q.length) { toast("End of the list"); return; }
+  play(q[j]);
+  if (document.querySelector(".sheet")) {
+    history.replaceState(null, "", "#ep/" + q[j]);
+    openSheet(q[j]);
+  }
+}
+
 function toggleFav(id) {
   if (S.fav[id]) delete S.fav[id];
   else {
@@ -586,9 +619,11 @@ async function openSheet(id) {
         <div class="sheet-meta">${bits.join("")}</div>
         <button class="big-play" data-play="${esc(id)}"><span id="sIco"></span><span id="sLbl">Play</span></button>
         <div class="jump">
+          <button id="sPrev" aria-label="Previous shiur"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h2.4v14H7z"/><path d="M19 5v14L9.5 12z"/></svg>Prev</button>
           <button id="sBack"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4L5 9l6 5"/><path d="M5 9h8a6 6 0 1 1 0 12H8"/></svg>15s</button>
           <button id="sRate">1&times;</button>
           <button id="sFwd"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4l6 5-6 5"/><path d="M19 9h-8a6 6 0 1 0 0 12h5"/></svg>30s</button>
+          <button id="sNext" aria-label="Next shiur"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.6 5H17v14h-2.4z"/><path d="M5 5v14l9.5-7z"/></svg>Next</button>
         </div>
         <div class="bar-track sheet-bar"><span class="bar-fill" id="sFill" style="width:0%"></span></div>
         <div class="sheet-time"><span id="sCur">0:00</span><span id="sDur">${hhmm(ep.s)}</span></div>
@@ -785,10 +820,8 @@ function mediaControls() {
   set("seekforward", d => {
     audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + ((d && d.seekOffset) || 30));
   });
-  set("previoustrack", () => { audio.currentTime = Math.max(0, audio.currentTime - 15); });
-  set("nexttrack", () => {
-    audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 30);
-  });
+  set("previoustrack", () => step(-1));
+  set("nexttrack", () => step(1));
   set("seekto", d => {
     if (d && d.seekTime != null) audio.currentTime = d.seekTime;
   });
@@ -815,18 +848,25 @@ function paint() {
   }
   mediaPosition();
   const playing = S.current && !audio.paused;
-  $("#icoPlay").hidden = !!playing;
-  $("#icoPause").hidden = !playing;
+  const show = (el, on) => { if (el) on ? el.removeAttribute("hidden") : el.setAttribute("hidden", ""); };
+  show($("#icoPlay"), !playing);
+  show($("#icoPause"), !!playing);
   $("#toggle").setAttribute("aria-label", playing ? "Pause" : "Play");
+  const canStep = (S.queue || []).indexOf(S.current);
+  ["#prevEp", "#sPrev"].forEach(sel => { const b = $(sel); if (b) b.disabled = canStep <= 0; });
+  ["#nextEp", "#sNext"].forEach(sel => {
+    const b = $(sel);
+    if (b) b.disabled = canStep < 0 || canStep >= (S.queue || []).length - 1;
+  });
   document.querySelectorAll(".ep").forEach(el => {
-    el.classList.toggle("is-current", el.dataset.play === S.current);
+    el.classList.toggle("is-current", el.dataset.open === S.current);
   });
 }
 
 /* ---------- events ---------- */
 document.addEventListener("click", e => {
   const p = e.target.closest("[data-play]");
-  if (p) { play(p.dataset.play); return; }
+  if (p) { captureQueue(p); play(p.dataset.play); return; }
 
   if (e.target.closest("#pInfo")) {
     if (S.current) location.hash = "ep/" + S.current;
@@ -834,7 +874,7 @@ document.addEventListener("click", e => {
   }
 
   const o = e.target.closest("[data-open]");
-  if (o) { location.hash = "ep/" + o.dataset.open; return; }
+  if (o) { captureQueue(o); location.hash = "ep/" + o.dataset.open; return; }
 
   if (e.target.closest("[data-close]")) {
     if (history.length > 1) history.back(); else location.hash = S.lastHash || "";
@@ -851,6 +891,9 @@ document.addEventListener("click", e => {
     toast(S.fav[fv.dataset.fav] ? "Saved" : "Removed");
     return;
   }
+
+  if (e.target.closest("#prevEp") || e.target.closest("#sPrev")) { step(-1); return; }
+  if (e.target.closest("#nextEp") || e.target.closest("#sNext")) { step(1); return; }
 
   if (e.target.closest("#sBack")) { audio.currentTime = Math.max(0, audio.currentTime - 15); return; }
   if (e.target.closest("#sFwd"))  { audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 30); return; }
