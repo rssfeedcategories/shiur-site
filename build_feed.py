@@ -366,7 +366,7 @@ def build():
 
     episodes, skipped, unnumbered, ambiguous = [], 0, [], []
     known_names = [c[0] for c in cats] + [fallback]
-    from_feed = from_filter = 0
+    from_tags = from_feed = from_filter = 0
 
     by_media, by_title = load_category_map()
     full = FULL_SCRAPE or not by_media
@@ -394,8 +394,17 @@ def build():
         dt = parse_date(text(item, "pubDate"))
         series, num, ref = parse_title(title)
 
+        # The NUC writes each episode's real category and subcategory tags
+        # into the feed as <category> elements (first = main category).
+        # They are authoritative; the scraped map and filter words are the
+        # fallback for episodes published before the tags existed.
+        ftags = [c.text.strip() for c in item.findall("category")
+                 if c.text and c.text.strip()]
         tagged = by_media.get(media_key(url)) or by_title.get(norm_title(title))
-        if tagged in known_names:
+        if ftags and ftags[0] in known_names:
+            cat, hits = ftags[0], []
+            from_tags += 1
+        elif tagged in known_names:
             cat, hits = tagged, []
             from_feed += 1
         else:
@@ -417,11 +426,16 @@ def build():
             "c": slug(cat),
             "cat": cat,
             "secs": section_for(title, splits.get(cat, "")),
+            # subcategory tags from the feed (geresh-stripped to merge with
+            # title-derived section names); an episode may carry several and
+            # belongs in EVERY one of them
+            "fsecs": [t.translate(GERESH).strip() for t in ftags[1:] if t.strip()],
             "ser": series,
             "n": num,
         })
 
-    print(f"Categories: {from_feed} from Libsyn, {from_filter} guessed from the title")
+    print(f"Categories: {from_tags} from feed tags, {from_feed} from the scraped map, "
+          f"{from_filter} guessed from the title")
 
     if not episodes:
         sys.exit("Feed parsed but no episodes with audio were found.")
@@ -439,23 +453,40 @@ def build():
 
     shelf, parts_report, leftovers, fellback = [], {}, {}, []
     for cat_name, eps in by_cat.items():
-        # Pass 1 — how often is each candidate the title's first choice?
+        # Pass 1 — tally every candidate section name. Feed tags are the
+        # candidates when present; title-derived names otherwise.
         tally = {}
         for e in eps:
-            if e["secs"]:
-                tally[e["secs"][0]] = tally.get(e["secs"][0], 0) + 1
+            for c in (e["fsecs"] or e["secs"][:1]):
+                tally[c] = tally.get(c, 0) + 1
         real = {k for k, v in tally.items() if v >= MIN_PART}
 
-        # Pass 2 — prefer a candidate that names a section that really exists
-        sections = {}
+        # Pass 2 — an episode joins EVERY real section its tags name (a
+        # two-topic shiur appears under both); title-derived episodes keep
+        # their single best section as before.
+        sections, homes_of = {}, {}
         for e in eps:
-            pick = next((c for c in e["secs"] if c in real), None) \
-                   or (e["secs"][0] if e["secs"] else None)
-            e["sec"] = pick
-            sections.setdefault(pick or cat_name, []).append(e)
-        # Anything too small to be a real section rejoins the main list
+            cands = e["fsecs"] or e["secs"]
+            homes = [c for c in dict.fromkeys(cands) if c in real]
+            if not homes:
+                homes = [cands[0]] if cands else [cat_name]
+            if not e["fsecs"]:
+                homes = homes[:1]          # title guesses stay single-homed
+            e["sec"] = homes[0]
+            homes_of[e["id"]] = set(homes)
+            for h in homes:
+                sections.setdefault(h, []).append(e)
+        # Anything too small to be a real section rejoins the main list --
+        # unless the episode already lives in a real section elsewhere
         for sname in [k for k, v in sections.items() if k != cat_name and len(v) < MIN_PART]:
-            sections.setdefault(cat_name, []).extend(sections.pop(sname))
+            for e in sections.pop(sname):
+                homes_of[e["id"]].discard(sname)
+                if homes_of[e["id"]]:
+                    continue
+                if any(x["id"] == e["id"] for x in sections.get(cat_name, [])):
+                    continue
+                homes_of[e["id"]].add(cat_name)
+                sections.setdefault(cat_name, []).append(e)
         # If real sections exist, the unsorted remainder needs its own label
         if len(sections) > 1 and cat_name in sections:
             leftovers[cat_name] = [x["t"] for x in sections[cat_name]]
@@ -480,7 +511,7 @@ def build():
                 "ordered": ordered,
                 "count": len(seps),
                 "latest": max(dates) if dates else "",
-                "episodes": [{k: v for k, v in x.items() if k not in ("ts", "cat", "sec", "secs")} for x in seps],
+                "episodes": [{k: v for k, v in x.items() if k not in ("ts", "cat", "sec", "secs", "fsecs")} for x in seps],
             })
         series_out.sort(key=lambda s: s["latest"], reverse=True)
         parts_report[cat_name] = [(s["name"], s["count"]) for s in series_out]
@@ -498,7 +529,7 @@ def build():
 
     shelf.sort(key=lambda c: c["latest"], reverse=True)
 
-    slim = [{k: v for k, v in e.items() if k not in ("ts", "cat", "sec", "secs")} for e in episodes]
+    slim = [{k: v for k, v in e.items() if k not in ("ts", "cat", "sec", "secs", "fsecs")} for e in episodes]
 
     with open(os.path.join(OUT_DIR, "index.json"), "w", encoding="utf-8") as f:
         json.dump({
