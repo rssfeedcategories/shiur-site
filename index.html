@@ -752,7 +752,13 @@ function findEp(id) {
   const r = S.index && S.index.recent.find(x => x.id === id);
   if (r) return r;
   const saved = S.pos[id];
-  return saved ? { id, t: saved.t, u: saved.u, s: saved.d, ser: saved.ser, n: saved.n } : null;
+  if (saved) return { id, t: saved.t, u: saved.u, s: saved.d, ser: saved.ser, n: saved.n };
+  // Shared from the app: links carry the title and audio (?t=…&a=…), so a shiur
+  // missing from Libsyn's feed still opens and plays.
+  const q = new URLSearchParams(location.search);
+  if (q.get("a") && /^https:\/\/traffic\.libsyn\.com\//.test(q.get("a")))
+    return { id, t: q.get("t") || "שיעור", u: q.get("a") };
+  return null;
 }
 
 function play(id) {
