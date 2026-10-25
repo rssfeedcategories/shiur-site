@@ -1,0 +1,38 @@
+{
+ "_about": "Birkas app page map. shas: masechta number -> [HebrewBooks book, offset] (page = amud index + offset; 2a = 4). books: replace a sefer print: old book -> [new book, page offset]. Changes reach the app within an hour, no app update.",
+ "shas": {
+  "1": [
+   37952,
+   14
+  ],
+  "2": [
+   37953,
+   10
+  ],
+  "3": [
+   37954,
+   10
+  ],
+  "4": [
+   37955,
+   10
+  ],
+  "5": [
+   37955,
+   606
+  ],
+  "6": [
+   37956,
+   202
+  ],
+  "7": [
+   37956,
+   546
+  ],
+  "20": [
+   37962,
+   10
+  ]
+ },
+ "books": {}
+}
