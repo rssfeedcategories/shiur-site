@@ -593,6 +593,13 @@ def main():
     if a.feed:
         added, updated = merge_feed(eps, FEED_URL)
     eps = list(eps.values())
+    # Optional videos (catalog/videos.json: {guid: video url}, filled by the
+    # pipeline later). Empty = the app shows nothing video-related.
+    try:
+        videos = json.load(open("catalog/videos.json", encoding="utf8"))
+        videos = {k: v for k, v in videos.items() if not k.startswith("_") and isinstance(v, str) and v}
+    except FileNotFoundError:
+        videos = {}
     # Episodes to keep out of the app (catalog/hidden.json): by id or title text.
     hid = {"ids": [], "titles_contain": []}
     try:
@@ -612,6 +619,7 @@ def main():
         r = {"id": e["id"], "t": e["t"], "d": e["date"].isoformat().replace("+00:00", "Z") if e["date"] else None,
              "a": e["a"], "c": e["c"], "s": e["s"], "o": e["o"]}
         if e.get("sid"): r["sid"] = e["sid"]
+        if videos.get(e["id"]): r["v"] = videos[e["id"]]
         if e.get("ty") and e["ty"] != "audio/mpeg": r["ty"] = e["ty"]
         if e.get("sec"): r["dur"] = fmt_dur(e["sec"])
         if e.get("img") and e["img"] != DEFAULT_IMG: r["img"] = e["img"]
