@@ -593,6 +593,15 @@ def main():
     if a.feed:
         added, updated = merge_feed(eps, FEED_URL)
     eps = list(eps.values())
+    # Episodes to keep out of the app (catalog/hidden.json): by id or title text.
+    hid = {"ids": [], "titles_contain": []}
+    try:
+        hid.update(json.load(open("catalog/hidden.json", encoding="utf8")))
+    except FileNotFoundError:
+        pass
+    is_hidden = lambda e: e["id"] in hid["ids"] or any(t and t in (e["t"] or "") for t in hid["titles_contain"])
+    hidden_ids = sorted(e["id"] for e in eps if is_hidden(e))
+    eps = [e for e in eps if not is_hidden(e)]
     for e in eps:
         classify(e)
     inherited = inherit_sections(eps)
@@ -633,7 +642,7 @@ def main():
         out_eps.append(r)
 
     gen = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-    doc = {"version": 1, "generated": gen, "defaultImage": DEFAULT_IMG, "categories": meta, "episodes": out_eps}
+    doc = {"version": 1, "generated": gen, "defaultImage": DEFAULT_IMG, "categories": meta, "episodes": out_eps, "hidden": hidden_ids}
     # Leave the file alone when nothing but the timestamp would change, so the
     # app only re-downloads (and the site only commits) when there is news.
     try:
