@@ -37,15 +37,23 @@ jobs:
           FULL_SCRAPE: ${{ (github.event.schedule == '0 3 * * *' || github.event.inputs.mode == 'full') && '1' || '0' }}
         run: python3 build_feed.py
 
+      # The Birkas app's episode list (categories, order, PDF pages). The app
+      # downloads app/catalog.json, so changes here reach phones without an update.
+      - name: Rebuild app episode list
+        working-directory: app
+        run: |
+          python3 tools/build_catalog.py --feed --out catalog.json --report catalog_report.txt \
+            || echo "::warning::app catalog build failed - keeping the previous one"
+
       - name: Commit if anything changed
         run: |
           git config user.name  "feed-bot"
           git config user.email "feed-bot@users.noreply.github.com"
-          if [ -z "$(git status --porcelain data category_map.json)" ]; then
+          if [ -z "$(git status --porcelain data category_map.json app/catalog.json)" ]; then
             echo "Nothing changed - no commit."
             exit 0
           fi
-          git add data category_map.json
+          git add data category_map.json app/catalog.json
           git commit -m "Refresh episode data ($(date -u '+%Y-%m-%d %H:%M UTC'))"
           for i in 1 2 3; do
             if git push; then exit 0; fi
