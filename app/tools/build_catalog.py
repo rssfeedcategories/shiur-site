@@ -243,7 +243,10 @@ def loose_num(tok):
 
 def level3_numbers(title, kw):
     """All numbers that follow `kw` in the title, with ranges (X-Y) expanded."""
-    t = norm(title).replace(".", " ").replace(":", " ").replace(",", " ")
+    # The word עד ("until", no quote marks) must not become ע"ד = 74 once the
+    # quote marks are dropped: mark it before norm() removes them.
+    raw = re.sub(r"(?<![\u05D0-\u05EA\"'׳״])עד(?![\u05D0-\u05EA\"'׳״])", " UNTIL ", title or "")
+    t = norm(raw).replace(".", " ").replace(":", " ").replace(",", " ")
     if kw == "פסוק":  # stay inside the first פרק mentioned
         parts = t.split("פרק")
         t = "פרק".join(parts[:2]) if len(parts) > 2 else t
@@ -262,6 +265,11 @@ def level3_numbers(title, kw):
                 i += 1; continue
             if tk in AMUD:  # סימן ע"א / ע"ב are simanim 71 / 72, not amudim
                 tk = "עא" if tk == "עא" else "עב"
+            if tk == "UNTIL":
+                if last is None:
+                    tk = "עד"  # "סימן עד" with nothing before it: siman 74
+                else:
+                    tk = "-"  # "רמ"ד עד רמ"ו" = a range; "רמ"ד עד סעיף ו'" stops here
             if tk == "-":
                 pending_range = last is not None; i += 1; continue
             if tk == kw:  # "סימן X - סימן Y"
