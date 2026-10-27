@@ -351,8 +351,9 @@ def shiur_num(title):
     m = re.search(r"שיעור\s*#?\s*(\d+)", title or "")
     return int(m.group(1)) if m else None
 def cycle(title):
+    # strict: "מחזור חדש" ("new cycle") is not cycle ח+ד+ש = 312
     m = re.search(r"מחזור\s+(\S+)", norm(title))
-    return heb_num(m.group(1)) if m else 1
+    return (strict_num(m.group(1)) or 1) if m else 1
 def position(title):
     """Numeric place in the sefer from the title (סימן/סעיף, דף/עמוד, פרק/פסוק)."""
     t = norm(title)
