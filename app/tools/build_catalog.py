@@ -613,14 +613,19 @@ def main():
         classify(e)
     inherited = inherit_sections(eps)
     meta = build(eps)
-    # Optional picture per category (catalog/category_icons.json: {category name: image url}).
+    # Optional icon per category (catalog/category_icons.json).
     try:
         icons = json.load(open("catalog/category_icons.json", encoding="utf8"))
     except FileNotFoundError:
         icons = {}
+    # value = "short label" (the app draws the icon) or {"label": "...", "image": "url"}
     for m in meta:
-        if icons.get(m["name"]):
-            m["icon"] = icons[m["name"]]
+        v = icons.get(m["name"])
+        if isinstance(v, str) and v.strip():
+            m["iconLabel"] = v.strip()
+        elif isinstance(v, dict):
+            if v.get("label"): m["iconLabel"] = v["label"]
+            if v.get("image"): m["icon"] = v["image"]
 
     out_eps = []
     for e in sorted(eps, key=lambda e: -ts(e)):
