@@ -287,6 +287,71 @@ def level3_numbers(title, kw):
             i += 1
     return sorted(nums)
 
+# ---------------------------------------------------------------- Mishlei pages
+# Pesukim per perek of Mishlei (for "whole perek" shiurim and range checks).
+MISHLEI_LEN = [33, 22, 35, 27, 23, 35, 27, 36, 18, 32, 31, 28, 25, 35, 33, 33,
+               28, 24, 29, 30, 31, 29, 35, 34, 28, 28, 27, 28, 27, 33, 31]
+
+def mishlei_range(title):
+    """(start perek, pasuk), (end perek, pasuk) of a Mishlei shiur title, e.g.
+    "פרק ב פסוק טז - כב - פרק ג פסוק א - ג" -> ((2,16),(3,3)). A perek with
+    no pesukim mentioned = the whole perek. None if no perek in the title."""
+    toks = norm(title).replace("-", " - ").split()
+    cur, spans, order, mode, i = None, {}, [], None, 0
+    while i < len(toks):
+        tk = toks[i]
+        if tk.endswith("פרק"):
+            i += 1
+            v = strict_num(toks[i]) if i < len(toks) else None
+            if v and 1 <= v <= 31:
+                cur = v; spans.setdefault(cur, []); order.append(cur)
+            mode = None; i += 1; continue
+        if tk in ("פסוק", "פסוקים"):
+            mode = "p"; i += 1; continue
+        if mode == "p" and cur:
+            if tk == "-":
+                i += 1; continue
+            v = strict_num(tk)
+            if v and 1 <= v <= MISHLEI_LEN[cur - 1] + 3:
+                spans[cur].append(min(v, MISHLEI_LEN[cur - 1])); i += 1; continue
+            mode = None
+        i += 1
+    if not order:
+        return None
+    p1, p2 = order[0], order[-1]
+    a = min(spans[p1]) if spans[p1] else 1
+    z = max(spans[p2]) if spans[p2] else MISHLEI_LEN[p2 - 1]
+    if (p2, z) < (p1, a):
+        return None
+    return (p1, a), (p2, z)
+
+def mishlei_pages(title, src):
+    """Book pages (first, last) of the shiur, from catalog/sources/mishlei.json:
+    {"url": ".../{p}.pdf", "pages": {"17": [[1,1],[1,2]], ...}}"""
+    r = mishlei_range(title)
+    if not r:
+        return None
+    (s, e) = r
+    hit = [int(p) for p, (ps, pe) in src["pages"].items() if tuple(pe) >= s and tuple(ps) <= e]
+    if not hit:
+        return None
+    lo, hi = min(hit), max(hit)
+    return lo, min(hi, lo + 39)   # never more than 40 pages
+
+def mishlei_label(title):
+    r = mishlei_range(title)
+    if not r:
+        return None
+    (p1, a), (p2, z) = r
+    lbl = f"פרק {heb_display(p1)} {heb_display(a)}"
+    lbl += f" – {heb_display(z)}" if p1 == p2 else f" – פרק {heb_display(p2)} {heb_display(z)}"
+    return lbl
+
+MISHLEI_SOURCE = None
+_ms = pathlib.Path(__file__).resolve().parent.parent / "catalog" / "sources" / "mishlei.json"
+if _ms.exists():
+    MISHLEI_SOURCE = json.loads(_ms.read_text(encoding="utf-8"))
+
 def gemara_amudim(title):
     """Amudim a Gemara shiur covers, e.g. "דף ה' ע"ב - ו' ע"א" -> ["5b","6a"].
     "." / ":" after the daf also mark amud a / b. No amud given -> both."""
@@ -669,6 +734,13 @@ def main():
                     if len(nums) > 1:
                         lbl += " – " + level3_label("סימן", max(nums)).replace("סימן ", "")
                     r["pg"] = {"src": "hb-book", "b": src["book"], "from": lo, "to": hi, "lbl": lbl}
+        # Source pages: ספר משלי -> own page files (Even Yisroel edition, with
+        # the publisher's permission), perek/pasuk -> pages from the page headers
+        if e["c"] == "ספר משלי" and MISHLEI_SOURCE and MISHLEI_SOURCE.get("url"):
+            pp = mishlei_pages(e["t"], MISHLEI_SOURCE)
+            if pp:
+                r["pg"] = {"src": "pdf", "url": MISHLEI_SOURCE["url"], "from": pp[0], "to": pp[1],
+                           "lbl": mishlei_label(e["t"]) or "משלי"}
         out_eps.append(r)
 
     gen = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
