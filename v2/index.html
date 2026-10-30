@@ -33,7 +33,7 @@ body{
 }
 @media(min-width:700px){body{background:#163A7C url(bg.jpg) center / auto 100vh no-repeat fixed}}
 @media(max-width:380px){.pill .lbl2{display:none}}
-body::before{content:"";position:fixed;inset:0;background:rgba(6,26,72,.35);pointer-events:none;z-index:-1}
+body::before{content:"";position:fixed;inset:0;background:rgba(8,30,80,.82);pointer-events:none;z-index:-1}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 a{color:inherit}
 [hidden]{display:none!important}
@@ -71,7 +71,9 @@ svg{width:1em;height:1em;fill:currentColor;flex:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;background:#fff;color:var(--navy);border-radius:10px;padding:6px 14px;font-weight:700;font-size:14px}
 .chip.on{background:var(--gold)}
-.count{color:#DCE6F7;font-size:13px;margin:0 2px 8px}
+.count{display:inline-block;color:#fff;background:rgba(4,18,61,.75);border-radius:8px;font-size:13px;padding:2px 10px;margin:0 2px 8px}
+.vtag{display:inline-flex;align-items:center;gap:3px;background:#E3ECFA;color:#0B2A66;border-radius:6px;padding:0 6px;font-weight:800;font-size:12px;direction:ltr}
+.vtag svg{font-size:13px}
 
 /* ---------- cards ---------- */
 .list{display:flex;flex-direction:column;gap:10px;padding-bottom:calc(30px + var(--mini))}
@@ -144,8 +146,22 @@ input[type=range]{flex:1;accent-color:#fff;height:22px;min-width:0}
 .vbar{display:flex;align-items:center;gap:8px;background:#E3ECFA;color:var(--navy);padding:8px 12px;font-weight:700;font-size:14px;flex:none}
 .vbar span{flex:1;display:flex;align-items:center;gap:6px}
 .vbar button{border:1.5px solid var(--navy);border-radius:999px;padding:5px 14px;display:inline-flex;align-items:center;gap:6px}
-.sheet .body{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:14px 12px calc(16px + env(safe-area-inset-bottom))}
-.sheet video{width:100%;max-width:820px;background:#000;border-radius:12px;max-height:46vh;margin-bottom:12px}
+.sheet .body{flex:1;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:14px 12px calc(16px + env(safe-area-inset-bottom))}
+.sheet video{width:100%;max-width:820px;background:#000;border-radius:12px;max-height:52vh;margin-bottom:12px;flex:none}
+.sheet.vid{background:#0A1B45}
+.settings{background:#fff;border-radius:14px;padding:6px 16px;margin-bottom:30px}
+.settings .it{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid #EEE}
+.settings .it:last-child{border:0}
+.settings .it b{display:block}
+.settings .it small{color:#666}
+.settings select{font:inherit;font-weight:700;padding:6px 8px;border-radius:8px;border:1px solid #CCD}
+.settings .danger{color:#B42318;font-weight:800}
+.pagesv{flex:1;overflow:auto;background:#3A3F47;padding:8px 0}
+.pagesv .pg{max-width:900px;margin:0 auto 10px;background:#fff;position:relative;min-height:300px;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.pagesv .pg canvas{display:block;width:100%;height:auto}
+.pagesv .pg .lb{position:absolute;top:6px;right:8px;background:rgba(4,18,61,.8);color:#fff;font-size:12px;border-radius:6px;padding:2px 8px;direction:rtl}
+.pagesv .pg.own .lb{background:#C8901A}
+.pagesv .pg .ld{position:absolute;inset:0;display:grid;place-items:center;color:#888}
 .pcard{width:100%;max-width:560px;background:rgba(255,255,255,.88);color:#111;border-radius:22px;padding:14px 16px 10px;box-shadow:0 6px 24px rgba(0,0,0,.35);backdrop-filter:blur(6px)}
 .pcard .dt{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:15px}
 .pcard .hd2{text-align:center;color:#444;font-size:14px;margin-top:4px;direction:rtl}
@@ -188,7 +204,7 @@ input[type=range]{flex:1;accent-color:#fff;height:22px;min-width:0}
 .bsheet .btns button{flex:1;height:48px;border-radius:12px;font-weight:800;font-size:16px}
 .b-out{border:1.5px solid var(--navy)!important;color:var(--navy)}
 .b-gold{background:var(--gold)}
-.drawer{position:fixed;top:0;bottom:0;left:0;width:290px;max-width:84vw;z-index:71;background:var(--navy) url(bg.jpg) center/cover;color:#fff;display:flex;flex-direction:column}
+.drawer{position:fixed;top:0;bottom:0;left:0;width:290px;max-width:84vw;z-index:71;background:var(--navy);overflow:auto;color:#fff;display:flex;flex-direction:column}
 .drawer .who{display:flex;align-items:center;gap:12px;padding:22px 18px;border-bottom:1px solid rgba(255,255,255,.2)}
 .drawer .who img{width:52px;height:52px;border-radius:50%;background:#fff}
 .drawer .who b{font-size:20px}
@@ -286,8 +302,10 @@ const icon = id => `<svg><use href="#i-${id}"/></svg>`;
 
 /* ---------------- saved on this device (favorites, places, played) ---------------- */
 const KEY = "birkas-web-v1";
-let S = {fav:{}, pos:{}, played:{}, speed:1, last:null};
+let S = {fav:{}, pos:{}, played:{}, speed:1, last:null, set:{}};
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch(e) {}
+S.set = Object.assign({video:"audio", back:15, fwd:30}, S.set||{});
+const hasVideo = e => !!e.v && S.set.video !== "off";
 let saveT = 0;
 function save(){ clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} }, 300); }
 
@@ -352,8 +370,8 @@ function filtered(){
   if (VIEW.cat) L = L.filter(e=>inSeries(e, VIEW.cat, VIEW.sec, VIEW.pt));
   if (VIEW.q){ const words = norm(VIEW.q).split(" "); L = L.filter(e=>words.every(w=>e.hay.includes(w))); }
   const c = VIEW.chip;
-  if (c==="audio") L = L.filter(e=>!e.v);
-  else if (c==="video") L = L.filter(e=>e.v);
+  if (c==="audio") L = L.filter(e=>!hasVideo(e));
+  else if (c==="video") L = L.filter(e=>hasVideo(e));
   else if (c==="unread") L = L.filter(e=>!S.played[e.id]);
   else if (c==="read") L = L.filter(e=>S.played[e.id]);
   else if (c==="cont") L = L.filter(e=>(S.pos[e.id]||0)>5 && !S.played[e.id]);
@@ -386,7 +404,7 @@ function cardHtml(e, i){
       <div class="mid">
         ${top?`<div class="t1">${esc(top)}</div>`:""}
         <div class="t2">${esc(main)}</div>
-        <div class="meta">${statusHtml(e)}<span>·</span><span>${fdate(e.d)}</span>${e.dur?`<span>·</span><span class="dur">${icon(e.v?"cam":"head")}${esc(e.dur)}</span>`:""}</div>
+        <div class="meta">${statusHtml(e)}<span>·</span><span>${fdate(e.d)}</span>${e.dur?`<span>·</span><span class="dur">${icon(hasVideo(e)?"cam":"head")}${esc(e.dur)}</span>`:""}${hasVideo(e)?`<span class="vtag">${icon("cam")}Video</span>`:""}</div>
       </div>
       ${cicon(e)}
     </div>
@@ -415,7 +433,7 @@ function chooserText(){
 }
 function renderHome(){
   const L = filtered(); LIST = L;
-  const chips = [["all","All"],["audio","Audio"],["video","Video"],["unread","Unread"],["read","Read"],["cont","Continue"]];
+  const chips = [["all","All"],...(S.set.video==="off"?[]:[["audio","Audio"],["video","Video"]]),["unread","Unread"],["read","Read"],["cont","Continue"]];
   const ct = chooserText();
   const where = VIEW.tab==="fav" ? " (במועדפים)" : VIEW.tab==="cont" ? " (בהמשך)" : "";
   $("#main").innerHTML = `
@@ -489,6 +507,24 @@ function renderCategories(ck, sk){
     ${c.secs.map(s=>`<a class="rowi" style="text-decoration:none" href="#/c/${encodeURIComponent(c.key)}/${encodeURIComponent(s.key)}"><span>${esc(s.name)}</span><small>${s.count}</small></a>`).join("")}</div>`;
 }
 
+/* ---------------- settings ---------------- */
+function renderSettings(){
+  const sel = (id, cur, opts) => `<select id="${id}">${opts.map(([v,l])=>`<option value="${v}" ${String(v)===String(cur)?"selected":""}>${l}</option>`).join("")}</select>`;
+  $("#main").innerHTML = `<div class="subbar"><a class="ib" href="#/" aria-label="Back">${icon("arrow")}</a><h2 style="direction:ltr;text-align:left">Settings</h2></div>
+  <div class="settings">
+    <div class="it"><div><b>Video</b><small>For shiurim that have a video</small></div>${sel("sVideo", S.set.video, [["audio","Start with audio"],["video","Start with video"],["off","Hide video"]])}</div>
+    <div class="it"><div><b>Playback speed</b></div>${sel("sSpeed", S.speed||1, [0.75,1,1.25,1.5,1.75,2].map(v=>[v,v+"x"]))}</div>
+    <div class="it"><div><b>Skip back</b></div>${sel("sBack", S.set.back, [5,10,15,30,60].map(v=>[v,v+" sec"]))}</div>
+    <div class="it"><div><b>Skip forward</b></div>${sel("sFwd", S.set.fwd, [10,15,30,60,120].map(v=>[v,v+" sec"]))}</div>
+    <div class="it"><div><b>Saved on this device</b><small>${Object.keys(S.fav).length} favorites · ${Object.keys(S.played).length} played</small></div><button class="danger" id="sClear">Clear</button></div>
+  </div>`;
+  $("#sVideo").onchange = ev => { S.set.video = ev.target.value; save(); if (S.set.video==="off") stopVideo(false); updateMini(); toast("Saved"); };
+  $("#sSpeed").onchange = ev => { S.speed = +ev.target.value; media().playbackRate = S.speed; save(); toast("Saved"); };
+  $("#sBack").onchange = ev => { S.set.back = +ev.target.value; save(); toast("Saved"); };
+  $("#sFwd").onchange = ev => { S.set.fwd = +ev.target.value; save(); toast("Saved"); };
+  $("#sClear").onclick = () => { if (!confirm("Clear favorites, places and played marks on this device?")) return; S.fav={}; S.pos={}; S.played={}; save(); renderSettings(); toast("Cleared"); };
+}
+
 /* ---------------- favorites / played ---------------- */
 function toggleFav(e){ if (S.fav[e.id]) delete S.fav[e.id]; else S.fav[e.id]=1; save(); toast(S.fav[e.id]?"Added to favorites":"Removed from favorites"); refresh(); }
 function togglePlayed(e){ if (S.played[e.id]){ delete S.played[e.id]; } else { S.played[e.id]=1; delete S.pos[e.id]; } save(); toast(S.played[e.id]?"Marked as played":"Marked as unplayed"); refresh(); }
@@ -496,7 +532,7 @@ function refresh(){ route(true); updateMini(); if (PLAYER_OPEN) drawPlayer(); }
 
 /* ---------------- playback ---------------- */
 const audio = $("#audio");
-let CUR = null, QUEUE = [], QI = 0, VIDEO = null, PLAYER_OPEN = false, MINI_SMALL = false;
+let CUR = null, QUEUE = [], QI = 0, VIDEO = null, PLAYER_OPEN = false, MINI_SMALL = false, WANT_VIDEO = false;
 const media = () => VIDEO || audio;
 audio.playbackRate = S.speed||1;
 
@@ -514,7 +550,7 @@ function play(list, i, {autoplay=true}={}){
 function markPlaying(){ document.querySelectorAll(".card.playing").forEach(c=>c.classList.remove("playing")); if (CUR) document.querySelectorAll(`.card[data-id="${CUR.id}"]`).forEach(c=>c.classList.add("playing")); }
 function playPause(){ const m = media(); if (!CUR) return; if (m.paused) m.play().catch(()=>{}); else m.pause(); }
 function skip(d){ const m = media(); m.currentTime = Math.max(0, Math.min((m.duration||0)-1, m.currentTime + d)); }
-function step(d){ const j = QI + d; if (j>=0 && j<QUEUE.length){ play(QUEUE, j); if (PLAYER_OPEN) drawPlayer(); } }
+function step(d){ const j = QI + d; if (j>=0 && j<QUEUE.length){ play(QUEUE, j); if (PLAYER_OPEN){ drawPlayer(); if (S.set.video==="video" && hasVideo(CUR)) startVideo(); history.replaceState(null,"","#/shiur/"+CUR.id); lastRoute=location.hash; } } }
 function savePos(){ const m = media(); if (!CUR || !m.currentTime) return; S.pos[CUR.id] = m.currentTime; S.pos["_t"+CUR.id] = Date.now(); save(); }
 setInterval(()=>{ if (CUR && !media().paused) savePos(); }, 5000);
 function onTime(){
@@ -542,7 +578,7 @@ function setSession(e){
   const set = (a,f) => { try { navigator.mediaSession.setActionHandler(a,f); } catch(x){} };
   set("play", ()=>media().play()); set("pause", ()=>media().pause());
   set("previoustrack", ()=>step(-1)); set("nexttrack", ()=>step(1));
-  set("seekbackward", ()=>skip(-15)); set("seekforward", ()=>skip(30));
+  set("seekbackward", ()=>skip(-S.set.back)); set("seekforward", ()=>skip(+S.set.fwd));
   set("seekto", d=>{ media().currentTime = d.seekTime; });
 }
 
@@ -572,7 +608,7 @@ ms.onchange = ()=>{ media().currentTime = +ms.value; DRAG.mini=false; savePos();
 /* ---------------- full player ---------------- */
 function openPlayer(list, i){
   const e = list[i];
-  if (!CUR || CUR.id !== e.id) play(list, i);
+  if (!CUR || CUR.id !== e.id){ play(list, i); if (S.set.video==="video" && hasVideo(e)) WANT_VIDEO = true; }
   else { QUEUE = list; QI = i; }
   location.hash = "#/shiur/"+e.id;
 }
@@ -581,10 +617,11 @@ function drawPlayer(){
   const [top, main] = e.split;
   const he = heFmt ? heFmt.format(new Date(e.d)) : "";
   const speeds = [0.75,1,1.25,1.5,1.75,2];
-  layerPlayer(`<div class="sheet" id="sheet">
+  layerPlayer(`<div class="sheet${VIDEO?" vid":""}" id="sheet">
     <div class="hd"><button class="ib" id="pBack" aria-label="Back">${icon("arrow")}</button><b>${esc(e.t)}</b><small>${QUEUE.length?`${QI+1}/${QUEUE.length}`:""}</small></div>
-    ${e.v?`<div class="vbar"><span>${icon("cam")} ${VIDEO?"Watching the video":"This shiur has a video"}</span><button id="pVid">${VIDEO?icon("head")+"Listen only":icon("live")+"Watch video"}</button></div>`:""}
+    ${hasVideo(e)?`<div class="vbar"><span>${icon("cam")} ${VIDEO?"Watching the video":"This shiur has a video"}</span><button id="pVid">${VIDEO?icon("head")+"Listen only":icon("live")+"Watch video"}</button></div>`:""}
     <div class="body">
+      <div style="flex:1 1 0;min-height:0"></div>
       <div id="vidHost" style="width:100%;display:flex;justify-content:center"></div>
       <div class="pcard">
         <div class="dt">📅 ${fdate(e.d)}</div>
@@ -594,9 +631,9 @@ function drawPlayer(){
         ${e.pg?`<button class="pdfb" id="pPdf">${icon("pdf")}View PDF</button>`:""}
         <div class="pctl">
           <button id="pPrev" aria-label="Previous">${icon("prev")}</button>
-          <button id="pB15" aria-label="Back 15 seconds">${icon("back15")}</button>
+          <button id="pB15" aria-label="Back ${S.set.back} seconds" title="Back ${S.set.back} sec">${icon("back15")}</button>
           <button id="pPlay" class="pp" aria-label="Play">${icon(media().paused?"play":"pause")}</button>
-          <button id="pF30" aria-label="Forward 30 seconds">${icon("fwd15")}</button>
+          <button id="pF30" aria-label="Forward ${S.set.fwd} seconds" title="Forward ${S.set.fwd} sec">${icon("fwd15")}</button>
           <button id="pNext" aria-label="Next">${icon("next")}</button>
         </div>
         <div class="pseek"><span id="pCur">0:00</span><input type="range" id="pSeek" min="0" max="1" value="0"><span id="pDur">${esc(e.dur||"")}</span></div>
@@ -613,7 +650,7 @@ function drawPlayer(){
   $("#pBack").onclick = ()=>history.length>1 ? history.back() : (location.hash="#/");
   $("#pPlay").onclick = playPause;
   $("#pPrev").onclick = ()=>step(-1); $("#pNext").onclick = ()=>step(1);
-  $("#pB15").onclick = ()=>skip(-15); $("#pF30").onclick = ()=>skip(30);
+  $("#pB15").onclick = ()=>skip(-S.set.back); $("#pF30").onclick = ()=>skip(+S.set.fwd);
   $("#pFav").onclick = ()=>toggleFav(e); $("#pPlayed").onclick = ()=>togglePlayed(e);
   $("#pSpeed").onchange = ev => { S.speed = +ev.target.value; media().playbackRate = S.speed; save(); };
   $("#pShare").onclick = ()=>share(e);
@@ -673,18 +710,65 @@ function pagesOf(e){
   return out;
 }
 const isAndroid = /Android/i.test(navigator.userAgent);
+/* Page files are drawn as pictures (like the app) through our small Cloudflare
+   relay; without it, fall back to the browser's own PDF view one page at a time. */
+const RELAY = "";   // e.g. https://birkas-pages.<name>.workers.dev
+let pdfjs = null;
+function loadPdfJs(){
+  if (pdfjs) return pdfjs;
+  pdfjs = new Promise((ok, bad) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; ok(window.pdfjsLib); };
+    sc.onerror = () => { pdfjs = null; bad(new Error("pdf.js")); };
+    document.head.appendChild(sc);
+  });
+  return pdfjs;
+}
+function pagesShell(e, inner){
+  const box = $("#pagesBox") || (()=>{ const d=document.createElement("div"); d.id="pagesBox"; document.body.appendChild(d); return d; })();
+  box.innerHTML = `<div class="pages"><div class="hd"><button class="ib" id="pgClose" aria-label="Close">${icon("x")}</button><b>${esc(e.pg.lbl || e.split[1])}</b></div>${inner}</div>`;
+  $("#pgClose").onclick = ()=>box.remove();
+  return box;
+}
 function openPages(e){
   const P = pagesOf(e); if (!P?.length) return;
+  if (RELAY && P.every(p=>/^https:\/\/(beta\.hebrewbooks\.org\/pagefeed|pub-)/.test(p.url))) return openPagesDrawn(e, P);
+  openPagesFrame(e, P);
+}
+async function openPagesDrawn(e, P){
+  pagesShell(e, `<div class="pagesv" id="pv">${P.map((p,i)=>`<div class="pg${p.own?" own":""}" data-i="${i}"><div class="ld">Loading page…</div><span class="lb">${esc(p.label)}</span></div>`).join("")}</div>`);
+  const first = document.querySelector(`#pv .pg[data-i="${Math.max(0,P.findIndex(x=>x.own))}"]`);
+  first && first.scrollIntoView({block:"start"});
+  let lib;
+  try { lib = await loadPdfJs(); } catch(x){ return openPagesFrame(e, P); }
+  const draw = async el => {
+    if (el.dataset.done) return; el.dataset.done = 1;
+    const p = P[+el.dataset.i];
+    try {
+      const doc = await lib.getDocument({url: RELAY + "/?u=" + encodeURIComponent(p.url)}).promise;
+      const page = await doc.getPage(1);
+      const w = el.clientWidth || 800, v1 = page.getViewport({scale:1});
+      const scale = Math.min(4, (w * Math.min(2.5, devicePixelRatio||1)) / v1.width);
+      const vp = page.getViewport({scale});
+      const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+      await page.render({canvasContext:c.getContext("2d"), viewport:vp}).promise;
+      el.querySelector(".ld")?.remove(); el.style.minHeight = ""; el.prepend(c);
+    } catch(x){
+      el.querySelector(".ld").innerHTML = `<a href="${esc(p.url)}" target="_blank" rel="noopener" style="color:#0B2A66;font-weight:700">Open this page</a>`;
+    }
+  };
+  const io = new IntersectionObserver(en => en.forEach(x => { if (x.isIntersecting) draw(x.target); }), {root:$("#pv"), rootMargin:"800px"});
+  document.querySelectorAll("#pv .pg").forEach(el => io.observe(el));
+}
+function openPagesFrame(e, P){
   let k = Math.max(0, P.findIndex(x=>x.own));
   const draw = () => {
     const p = P[k];
     const src = isAndroid ? "https://docs.google.com/gview?embedded=1&url="+encodeURIComponent(p.url) : p.url+"#toolbar=0&navpanes=0&view=FitH";
-    const box = $("#pagesBox") || (()=>{ const d=document.createElement("div"); d.id="pagesBox"; document.body.appendChild(d); return d; })();
-    box.innerHTML = `<div class="pages"><div class="hd"><button class="ib" id="pgClose" aria-label="Close">${icon("x")}</button><b>${esc(e.pg.lbl || p.label)}</b></div>
-      <iframe src="${esc(src)}" title="Page"></iframe>
+    pagesShell(e, `<iframe src="${esc(src)}" title="Page"></iframe>
       <div class="nav"><button id="pgPrev" ${k===0?"disabled style=opacity:.4":""}>‹ Prev</button><span>${esc(p.label)}</span>
-      <a href="${esc(p.url)}" target="_blank" rel="noopener">Open</a><button id="pgNext" ${k===P.length-1?"disabled style=opacity:.4":""}>Next ›</button></div></div>`;
-    $("#pgClose").onclick = ()=>box.remove();
+      <a href="${esc(p.url)}" target="_blank" rel="noopener">Open</a><button id="pgNext" ${k===P.length-1?"disabled style=opacity:.4":""}>Next ›</button></div>`);
     $("#pgPrev").onclick = ()=>{ if (k>0){ k--; draw(); } };
     $("#pgNext").onclick = ()=>{ if (k<P.length-1){ k++; draw(); } };
   };
@@ -705,6 +789,7 @@ $("#menuBtn").onclick = ()=>layer(`<div class="scrim" data-close></div><nav clas
   <button id="dLive">${icon("live")}Live Stream</button>
   <a href="${STORE.ios}" target="_blank" rel="noopener">${icon("apple")}Get the iPhone app</a>
   <a href="${STORE.android}" target="_blank" rel="noopener">${icon("gplay")}Get the Android app</a>
+  <a href="#/settings" data-close>${icon("tune")}Settings</a>
   <a href="../support.html">${icon("help")}Contact &amp; help</a>
   <a href="../privacy.html">${icon("lock")}Privacy</a></nav>`) || ($("#dLive").onclick = showLive);
 function showLive(){
@@ -719,12 +804,13 @@ $("#liveBtn").onclick = showLive;
 let lastRoute = "";
 function route(force){
   const h = location.hash || "#/";
+  if (!force) closeLayer();
   const m = h.match(/^#\/shiur\/([\w-]+)/);
   if (m){
     const e = BYID[m[1]];
     if (e){
       if (!CUR || CUR.id !== e.id){ const L = LIST.includes(e) ? LIST : E; play(L, L.indexOf(e), {autoplay:false}); }
-      PLAYER_OPEN = true; drawPlayer();
+      PLAYER_OPEN = true; drawPlayer(); if (WANT_VIDEO){ WANT_VIDEO = false; startVideo(); }
       if (!lastRoute || lastRoute.startsWith("#/shiur")){ lastRoute = h; renderHome(); }   // opened straight from a link
       return;
     }
@@ -735,7 +821,8 @@ function route(force){
   const y = scrollY;
   lastRoute = h;
   const c = h.match(/^#\/c\/([^/]+)(?:\/(.+))?/);
-  if (h === "#/categories") renderCategories(null);
+  if (h === "#/settings") renderSettings();
+  else if (h === "#/categories") renderCategories(null);
   else if (c) { if (!force) VIEW.shown = 80; renderCategories(decodeURIComponent(c[1]), c[2] ? decodeURIComponent(c[2]) : null); }
   else if (h === "#/fav") { VIEW.tab = "fav"; renderHome(); }
   else renderHome();
