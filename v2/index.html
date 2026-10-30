@@ -712,7 +712,7 @@ function pagesOf(e){
 const isAndroid = /Android/i.test(navigator.userAgent);
 /* Page files are drawn as pictures (like the app) through our small Cloudflare
    relay; without it, fall back to the browser's own PDF view one page at a time. */
-const RELAY = "";   // e.g. https://birkas-pages.<name>.workers.dev
+const RELAY = "https://birkas-pages.izzygreenfeld.workers.dev";
 let pdfjs = null;
 function loadPdfJs(){
   if (pdfjs) return pdfjs;
