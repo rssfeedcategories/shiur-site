@@ -5,8 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for u in "https://beta.hebrewbooks.org/pagefeed/hebrewbooks_org_37956_560.pdf" "https://pub-0da52a6f8235473d8cadbe96c07ca5ae.r2.dev/mishlei/36.pdf" "https://admin.birkasshiur.com/hls/mystream.m3u8" "https://72.167.222.49/hls/mystream.m3u8" "http://72.167.222.49/hls/mystream.m3u8" "https://traffic.libsyn.com/secure/birkasavrohom/Maseches_Sukkah_-_Shiur_7_-_Daf_5_B_-_6_A_-_2026-10-20_2355.mp3" "https://birkasshiur.com/" "https://www.birkasshiur.com/"; do
-            h=$(curl -sk -o /dev/null -D - -L -H "Origin: https://rssfeedcategories.github.io" -r 0-100 --max-time 20 "$u" | grep -iE "^HTTP|access-control-allow-origin|content-type|^server|^location|x-powered|link:" | tr '\r\n' '  ')
-            echo "::notice title=${u:0:60}::$h"
+          sudo apt-get install -y -qq whois dnsutils >/dev/null 2>&1 || true
+          for d in birkasshiur.com birkasavrohom.com birkasavrohom.org; do
+            echo "::notice title=$d NS::$(dig +short NS $d | tr '\n' ' ') A: $(dig +short A $d | tr '\n' ' ')"
+            echo "::notice title=$d whois::$(whois $d | grep -iE 'Registrar:|Registrar URL|Expiry|Expiration' | head -4 | tr '\r\n' '  ')"
           done
-          curl -sL --max-time 20 https://birkasshiur.com/ | grep -oiE '<title>[^<]*|wp-content/themes/[^/]*|generator" content="[^"]*' | head -5 | sed 's/^/::notice title=wp::/'
