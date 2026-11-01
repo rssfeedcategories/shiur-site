@@ -49,12 +49,13 @@ def heb_display(n):  # with geresh/gershayim
 
 # ---------------------------------------------------------------- categories
 CATEGORY_ORDER = [
-    "שיעור יומי - גמרא", "משנה ברורה", "ספר משלי", "חובות הלבבות", "שערי תשובה",
+    "שיעור יומי - גמרא", "משנה ברורה", "ספר משלי - מחזור ב'", "ספר משלי", "חובות הלבבות", "שערי תשובה",
     "שמירת הלשון", "חפץ חיים", "ספר הכוזרי", "ספר קהלת", "כד הקמח לרבינו בחיי",
     "מבחר הפנינים", "תפילה", "עניני שבת קודש", 'ד"ת על הפרשה', 'הכנה ליו"ט',
     "שיעור כללי", "שלום בית", "general",
 ]
 LABELS = {"general": "שונות"}
+MISHLEI_2 = "ספר משלי - מחזור ב'"
 CAT_ALIAS = {norm(c): c for c in CATEGORY_ORDER}
 CAT_ALIAS.update({"משלי": "ספר משלי", "miscellaneous": "general", "כד הקמח": "כד הקמח לרבינו בחיי",
                   "דת על הפרשה": 'ד"ת על הפרשה', "גמרא": "שיעור יומי - גמרא"})
@@ -89,6 +90,7 @@ FIXED = {
     "שיעור יומי - גמרא": ["מסכת " + m for m in SHAS],
     "משנה ברורה": numbered("חלק", 1, 6),
     "ספר משלי": numbered("פרק", 1, 31),
+    "ספר משלי - מחזור ב'": numbered("פרק", 1, 31),
     "ספר קהלת": numbered("פרק", 1, 12),
     "ספר הכוזרי": ["מאמר ראשון","מאמר שני","מאמר שלישי","מאמר רביעי","מאמר חמישי"],
     "חובות הלבבות": CHOVOS,
@@ -203,7 +205,7 @@ for _f in sorted((pathlib.Path(__file__).resolve().parent.parent / "catalog" / "
     MB_SOURCES[_d["part"]] = _d
 
 LEVEL3 = {
-    "שיעור יומי - גמרא": "דף", "משנה ברורה": "סימן", "ספר משלי": "פסוק", "ספר קהלת": "פסוק",
+    "שיעור יומי - גמרא": "דף", "משנה ברורה": "סימן", "ספר משלי": "פסוק", "ספר משלי - מחזור ב'": "פסוק", "ספר קהלת": "פסוק",
     "חובות הלבבות": "פרק", "שמירת הלשון": "פרק", "שערי תשובה": "אות", "חפץ חיים": "כלל",
 }
 
@@ -686,6 +688,10 @@ def main():
     for e in eps:
         classify(e)
     inherited = inherit_sections(eps)
+    # Mishlei: the second cycle (מחזור ב') is its own category (users' request).
+    for e in eps:
+        if e["c"] == "ספר משלי" and (e["cy"] or 1) == 2:
+            e["c"] = MISHLEI_2
     meta = build(eps)
     # Optional icon per category (catalog/category_icons.json).
     try:
@@ -736,7 +742,7 @@ def main():
                     r["pg"] = {"src": "hb-book", "b": src["book"], "from": lo, "to": hi, "lbl": lbl}
         # Source pages: ספר משלי -> own page files (Even Yisroel edition, with
         # the publisher's permission), perek/pasuk -> pages from the page headers
-        if e["c"] == "ספר משלי" and MISHLEI_SOURCE and MISHLEI_SOURCE.get("url"):
+        if e["c"] in ("ספר משלי", MISHLEI_2) and MISHLEI_SOURCE and MISHLEI_SOURCE.get("url"):
             pp = mishlei_pages(e["t"], MISHLEI_SOURCE)
             if pp:
                 r["pg"] = {"src": "pdf", "url": MISHLEI_SOURCE["url"], "from": pp[0], "to": pp[1],
