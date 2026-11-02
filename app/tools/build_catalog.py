@@ -477,6 +477,7 @@ def load_seed(path):
             "date": parse_date(e.get("published_at")), "a": e.get("audio_url"),
             "ty": e.get("enclosure_type"), "sec": e.get("duration_seconds"),
             "img": e.get("image_url"), "l": e.get("link"), "tags": e.get("categories") or [],
+            "desc": e.get("description") or "",
         }
     return eps
 
@@ -497,6 +498,7 @@ def merge_feed(eps, url):
             "sec": dur_secs(it.findtext("itunes:duration", namespaces=ns)),
             "img": (it.find("itunes:image", ns).get("href") if it.find("itunes:image", ns) is not None else None),
             "l": it.findtext("link"), "tags": [c.text.strip() for c in it.findall("category") if c.text and c.text.strip()],
+            "desc": it.findtext("description") or "",
         }
         if guid in eps:
             eps[guid].update({k: v for k, v in rec.items() if v not in (None, "", [])})
@@ -505,6 +507,29 @@ def merge_feed(eps, url):
             eps[guid] = {"id": guid, "sid": None, **rec}
             added += 1
     return added, updated
+
+
+# ---------------------------------------------------------------- description
+import html as _html
+def _desc_lines(raw):
+    t = re.sub(r"(?i)<br\s*/?>|</p>|</div>|</li>", "\n", raw or "")
+    t = re.sub(r"<[^>]+>", " ", t)
+    t = _html.unescape(t).replace("\u00a0", " ")
+    out = []
+    for l in t.split("\n"):
+        l = re.sub(r"[ \t]+", " ", l).strip()
+        if re.sub(r"[\s\-–]", "", l):
+            out.append(l)
+    return out
+
+def _n(s):
+    return re.sub(r"\s+", " ", re.sub("[\u0591-\u05C7\"'׳״`]", "", s)).strip()
+
+def display_desc(raw, title):
+    """Libsyn description as plain text, without lines already in the title (max 1500 chars)."""
+    t = _n(title)
+    out = "\n".join(l for l in _desc_lines(raw) if _n(l) and _n(l) not in t).strip()
+    return out[:1500].rstrip() + "…" if len(out) > 1500 else out
 
 # ---------------------------------------------------------------- classify
 def classify(e):
@@ -717,6 +742,8 @@ def main():
         if e.get("sec"): r["dur"] = fmt_dur(e["sec"])
         if e.get("img") and e["img"] != DEFAULT_IMG: r["img"] = e["img"]
         if e.get("l"): r["l"] = e["l"]
+        ds = display_desc(e.get("desc", ""), e["t"])
+        if ds: r["ds"] = ds
         if e["n"] is not None: r["n"] = e["n"]
         if e.get("p") and LEVEL3.get(e["c"]): r["p"] = [level3_label(LEVEL3[e["c"]], n) for n in e["p"]]
         # Source pages: Gemara -> HebrewBooks Vilna Shas (masechta number = Shas order)
