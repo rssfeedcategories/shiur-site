@@ -325,7 +325,12 @@ function heNum(n){ // 1-999 → Hebrew numeral with geresh / gershayim
 }
 /* Card titles: small top line (sefer · shiur N) + big main line — same rule as the app */
 function splitTitle(title){
-  const parts = title.trim().split(/\s+[-–]\s*|\s*[-–]\s+/).map(x=>x.trim()).filter(Boolean);
+  const parts = [];
+  for (const x of title.trim().split(/\s+[-–]\s*|\s*[-–]\s+|\s*[•·]\s*/)) {
+    const t = x.trim(); if (!t) continue;
+    const m = t.match(/^(שיעור\s*#?\s*\d+\s*#?)\s+([^#\s].*)$/);
+    if (m) parts.push(m[1].trim(), m[2].trim()); else parts.push(t);
+  }
   if (parts.length < 2) return ["", title.trim()];
   const clean = s => s.replace(/#/g,"").replace(/\s+/g," ").trim();
   const isNo = p => p.includes("#") || /^שיעור\s*\d/.test(p);
