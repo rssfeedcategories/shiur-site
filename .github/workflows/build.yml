@@ -39,6 +39,15 @@ jobs:
 
       # The Birkas app's episode list (categories, order, PDF pages). The app
       # downloads app/catalog.json, so changes here reach phones without an update.
+      # Review days: "Live: משלי פרק ג" emails -> app/catalog/live_override.json
+      - name: Live Stream review email
+        working-directory: app
+        env:
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          LIVE_SENDERS: ${{ vars.LIVE_SENDERS }}
+        run: python3 tools/live_mail.py || echo "::warning::live email check failed"
+
       - name: Rebuild app episode list
         working-directory: app
         run: |
@@ -49,11 +58,12 @@ jobs:
         run: |
           git config user.name  "feed-bot"
           git config user.email "feed-bot@users.noreply.github.com"
-          if [ -z "$(git status --porcelain data category_map.json app/catalog.json)" ]; then
+          if [ -z "$(git status --porcelain data category_map.json app/catalog.json app/live.json app/catalog/live_override.json)" ]; then
             echo "Nothing changed - no commit."
             exit 0
           fi
-          git add data category_map.json app/catalog.json
+          git add data category_map.json app/catalog.json app/live.json
+          [ -f app/catalog/live_override.json ] && git add app/catalog/live_override.json
           git commit -m "Refresh episode data ($(date -u '+%Y-%m-%d %H:%M UTC'))"
           for i in 1 2 3; do
             if git push; then exit 0; fi

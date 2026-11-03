@@ -681,6 +681,92 @@ def build(eps):
     return meta
 
 # ---------------------------------------------------------------- main
+
+# ---------------------------------------------------------------- live now (Live Stream PDF buttons)
+# The Live Stream screen shows three PDF buttons: Gemara (morning), Mishlei and
+# Mishna Berura (evening). Each opens where the latest shiur of that sefer ended,
+# and a few pages on. For review days Izzy emails "Live: משלי פרק ג" (see
+# tools/live_mail.py) -> catalog/live_override.json, used for that date only.
+def _amud_next(a):
+    n, side = int(a[:-1]), a[-1]
+    return f"{n}b" if side == "a" else f"{n + 1}a"
+
+def _amud_from_daf(daf):
+    return f"{daf}a"
+
+def build_live(out_eps, override_path):
+    import zoneinfo
+    today = datetime.datetime.now(zoneinfo.ZoneInfo("America/New_York")).date().isoformat()
+    ov = {}
+    try:
+        o = json.load(open(override_path, encoding="utf8"))
+        if o.get("date") == today:
+            ov = o
+    except Exception:
+        pass
+
+    def latest(cat):
+        best = None
+        for r in out_eps:
+            if r["c"] == cat and r.get("pg") and r.get("d"):
+                if best is None or r["d"] > best["d"]:
+                    best = r
+        return best
+
+    items = []
+    # --- Gemara (morning)
+    g = latest("שיעור יומי - גמרא")
+    if g:
+        pg = g["pg"]
+        mas = g["s"][0] if g.get("s") else ""
+        if ov.get("gemara", {}).get("daf"):
+            start = _amud_from_daf(int(ov["gemara"]["daf"]))
+            note = "חזרה"
+        else:
+            start = pg["pages"][-1]
+            note = "ממשיך מהשיעור האחרון"
+        pages = [start]
+        for _ in range(4):
+            pages.append(_amud_next(pages[-1]))
+        d0 = heb_display(int(pages[0][:-1]))
+        items.append({"key": "gemara", "label": "גמרא", "title": f"{mas} · דף {d0}", "note": note,
+                      "pg": {"src": "hb-shas", "m": pg["m"], "pages": pages}})
+    # --- Mishlei (evening, first)
+    m = latest(MISHLEI_2) or latest("ספר משלי")
+    if m and MISHLEI_SOURCE:
+        perek = ov.get("mishlei", {}).get("perek")
+        if perek:
+            pp = mishlei_pages("פרק " + heb_display(int(perek)), MISHLEI_SOURCE)
+            frm, to = (pp if pp else (m["pg"]["from"], m["pg"]["to"]))
+            title, note = f"פרק {heb_display(int(perek))}", "חזרה"
+        else:
+            frm = m["pg"]["to"]
+            to = frm + 3
+            title, note = (m["pg"].get("lbl") or "משלי"), "ממשיך מהשיעור האחרון"
+        items.append({"key": "mishlei", "label": "משלי", "title": title, "note": note,
+                      "pg": {"src": "pdf", "url": MISHLEI_SOURCE["url"], "from": frm, "to": to, "lbl": title}})
+    # --- Mishna Berura (evening, second)
+    b = latest("משנה ברורה")
+    if b and b["pg"].get("src") == "hb-book":
+        siman = ov.get("mb", {}).get("siman")
+        hit = None
+        if siman:
+            for part, src in MB_SOURCES.items():
+                if str(int(siman)) in src["simanim"]:
+                    a_, z_ = src["simanim"][str(int(siman))]
+                    hit = (src["book"], a_, z_, part)
+                    break
+        if hit:
+            book, frm, to, part = hit
+            title, note = f"{part} · סימן {heb_display(int(siman))}", "חזרה"
+        else:
+            book, frm = b["pg"]["b"], b["pg"]["to"]
+            to = frm + 4
+            title, note = (b["pg"].get("lbl") or "משנה ברורה"), "ממשיך מהשיעור האחרון"
+        items.append({"key": "mb", "label": "משנה ברורה", "title": title, "note": note,
+                      "pg": {"src": "hb-book", "b": book, "from": frm, "to": to, "lbl": title}})
+    return {"date": today, "items": items}
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", default="catalog/seed_from_server_db.json")
@@ -790,6 +876,17 @@ def main():
     if doc is not None:
         with open(a.out, "w", encoding="utf8") as f:
             json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))
+
+    # live.json next to catalog.json (Live Stream PDF buttons)
+    try:
+        live = build_live(out_eps, str(pathlib.Path(a.out).resolve().parent / "catalog" / "live_override.json"))
+        live_path = pathlib.Path(a.out).resolve().parent / "live.json"
+        old_live = json.loads(live_path.read_text(encoding="utf8")) if live_path.exists() else None
+        if old_live != live:
+            live_path.write_text(json.dumps(live, ensure_ascii=False, indent=1), encoding="utf8")
+        print("live:", " | ".join(f"{i['label']}: {i['title']} ({i['note']})" for i in live["items"]))
+    except Exception as ex:
+        print("live.json failed:", ex)
 
     lines = [f"episodes={len(out_eps)} feed_added={added} feed_updated={updated} inherited_sections={inherited}"]
     for m in meta:
