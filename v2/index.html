@@ -189,6 +189,13 @@ input[type=range]{flex:1;accent-color:#fff;height:22px;min-width:0}
 .pages .nav{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--navy);color:#fff;padding:8px 10px calc(8px + env(safe-area-inset-bottom));flex:none}
 .pages .nav button,.pages .nav a{background:#fff;color:var(--navy);border-radius:10px;padding:8px 14px;font-weight:800;text-decoration:none;font-size:14px}
 .pages .nav span{direction:rtl;font-weight:700}
+/* View PDF while watching a video: video on top, the page underneath (like the app) */
+.pages.split{top:var(--splitTop,45vh);box-shadow:0 -4px 14px rgba(0,0,0,.45)}
+.pages.split .hd{height:44px;cursor:ns-resize;touch-action:none;user-select:none}
+.pages.split .grip{width:36px;height:5px;border-radius:3px;background:#8FA6D4;flex:none;margin:0 6px}
+.sheet.split .body>div:first-child,.sheet.split .pcard{display:none}
+.sheet.split .body{padding-top:8px}
+.sheet.split video{max-height:var(--vidMax,36vh);margin-bottom:0}
 
 /* ---------- chooser sheet / drawer / dialog ---------- */
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:70}
@@ -652,6 +659,7 @@ function drawPlayer(){
       </div>
     </div></div>`);
   if (VIDEO) $("#vidHost").appendChild(VIDEO);
+  if ($("#pagesBox .pages.split")){ if (VIDEO) applySplit(); else { $("#pagesBox .pages").classList.remove("split"); $("#pagesBox .grip")?.remove(); } }
   $("#pBack").onclick = ()=>history.length>1 ? history.back() : (location.hash="#/");
   $("#pPlay").onclick = playPause;
   $("#pPrev").onclick = ()=>step(-1); $("#pNext").onclick = ()=>step(1);
@@ -730,10 +738,38 @@ function loadPdfJs(){
   });
   return pdfjs;
 }
+let SPLIT_TOP = 0; // where the page starts when shown under a video (px from the top)
+function closePages(){
+  $("#pagesBox")?.remove();
+  $("#sheet")?.classList.remove("split");
+}
+function applySplit(){
+  const pg = $("#pagesBox .pages.split"), sh = $("#sheet");
+  if (!pg || !sh) return;
+  sh.classList.add("split");
+  const minTop = 160, maxTop = innerHeight - 160;
+  if (!SPLIT_TOP){ const v = $("#vidHost"); SPLIT_TOP = v ? v.getBoundingClientRect().bottom + 6 : innerHeight*0.42; }
+  SPLIT_TOP = Math.max(minTop, Math.min(maxTop, SPLIT_TOP));
+  pg.style.setProperty("--splitTop", SPLIT_TOP + "px");
+  sh.style.setProperty("--vidMax", Math.max(90, SPLIT_TOP - 56 - 16) + "px");
+}
 function pagesShell(e, inner){
   const box = $("#pagesBox") || (()=>{ const d=document.createElement("div"); d.id="pagesBox"; document.body.appendChild(d); return d; })();
-  box.innerHTML = `<div class="pages"><div class="hd"><button class="ib" id="pgClose" aria-label="Close">${icon("x")}</button><b>${esc(e.pg.lbl || e.split[1])}</b></div>${inner}</div>`;
-  $("#pgClose").onclick = ()=>box.remove();
+  const split = !!(VIDEO && PLAYER_OPEN);
+  box.innerHTML = `<div class="pages${split?" split":""}"><div class="hd" id="pgBar">${split?`<span class="grip" aria-hidden="true"></span>`:""}<button class="ib" id="pgClose" aria-label="Close">${icon("x")}</button><b>${esc(e.pg.lbl || e.split[1])}</b></div>${inner}</div>`;
+  $("#pgClose").onclick = closePages;
+  if (split){
+    applySplit();
+    // drag the bar up / down to give the video or the page more room
+    const bar = $("#pgBar");
+    bar.onpointerdown = ev => {
+      if (ev.target.closest("button")) return;
+      bar.setPointerCapture(ev.pointerId);
+      const y0 = ev.clientY, t0 = SPLIT_TOP;
+      bar.onpointermove = m => { SPLIT_TOP = t0 + (m.clientY - y0); applySplit(); };
+      bar.onpointerup = bar.onpointercancel = () => { bar.onpointermove = null; };
+    };
+  }
   return box;
 }
 function openPages(e){
@@ -784,7 +820,7 @@ function openPagesFrame(e, P){
 function layer(html){ const l = $("#layer"); l.innerHTML = html; l.querySelectorAll("[data-close]").forEach(x=>x.onclick=closeLayer); }
 function closeLayer(){ $("#layer").innerHTML = ""; }
 function layerPlayer(html){ let p = $("#playerBox"); if (!p){ p=document.createElement("div"); p.id="playerBox"; document.body.appendChild(p); } p.innerHTML = html; document.body.style.overflow="hidden"; }
-function closePlayer(){ if (VIDEO){ /* keep watching in the mini player as audio */ stopVideo(false); } $("#playerBox")?.remove(); document.body.style.overflow=""; PLAYER_OPEN=false; }
+function closePlayer(){ if ($("#pagesBox .pages.split")) closePages(); if (VIDEO){ /* keep watching in the mini player as audio */ stopVideo(false); } $("#playerBox")?.remove(); document.body.style.overflow=""; PLAYER_OPEN=false; }
 
 $("#menuBtn").onclick = ()=>layer(`<div class="scrim" data-close></div><nav class="drawer">
   <div class="who"><img src="logo.png" alt=""><b>Birkas Shiur</b></div>
@@ -835,7 +871,7 @@ function route(force){
   markPlaying();
 }
 addEventListener("hashchange", ()=>route(false));
-addEventListener("keydown", ev => { if (ev.key===" " && CUR && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ ev.preventDefault(); playPause(); } if (ev.key==="Escape"){ if ($("#pagesBox")) $("#pagesBox").remove(); else if ($("#layer").innerHTML) closeLayer(); else if (PLAYER_OPEN) history.back(); } });
+addEventListener("keydown", ev => { if (ev.key===" " && CUR && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){ ev.preventDefault(); playPause(); } if (ev.key==="Escape"){ if ($("#pagesBox")) closePages(); else if ($("#layer").innerHTML) closeLayer(); else if (PLAYER_OPEN) history.back(); } });
 
 load().then(()=>{
   if (S.last && BYID[S.last] && !location.hash.startsWith("#/shiur")){ CUR = BYID[S.last]; QUEUE = E; QI = E.indexOf(CUR); audio.src = CUR.a; audio.preload="none";
