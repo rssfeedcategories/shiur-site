@@ -68,7 +68,14 @@ jobs:
           for i in 1 2 3; do
             if git push; then exit 0; fi
             echo "Push rejected - syncing and retrying ($i of 3)"
-            git pull --rebase origin main
+            # Another push landed at the same moment (e.g. the daily videos run).
+            # Our files are freshly generated, so on a clash keep ours
+            # (in a rebase "theirs" = the commit being replayed = this run's).
+            if ! git pull --rebase -X theirs origin main; then
+              git rebase --abort || true
+              echo "::warning::Could not merge with a parallel push - the next run (15 min) will rebuild"
+              exit 0
+            fi
           done
-          echo "Could not push after 3 attempts"
-          exit 1
+          echo "::warning::Could not push after 3 attempts - the next run (15 min) will rebuild"
+          exit 0
