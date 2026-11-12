@@ -976,6 +976,7 @@ function route(force){
       return;
     }
   }
+  if (h === "#/live"){ if (PLAYER_OPEN) closePlayer(); if (!lastRoute){ lastRoute = h; renderHome(); } showLive(); return; }   // direct link to the live stream
   if (PLAYER_OPEN) closePlayer();
   if (!force && h === lastRoute) return;
   const keepScroll = force;
