@@ -214,6 +214,12 @@ input[type=range]{flex:1;accent-color:#fff;height:22px;min-width:0}
 .lvlisten .pp{width:64px;height:64px;border-radius:50%;background:var(--gold);color:var(--navy);display:grid;place-items:center}
 .lvlisten .pp svg{width:30px;height:30px;color:var(--navy)}
 #lvBtns{width:100%;max-width:820px;margin-top:14px}
+#lvSeek{width:100%;max-width:820px;margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+#lvSeek[hidden]{display:none}
+#lvSeek button{border:1.5px solid rgba(255,255,255,.4);border-radius:999px;padding:7px 12px;color:#fff;font-weight:700;font-size:13px}
+#lvSeek button.golive.behind{background:#D9333F;border-color:#D9333F}
+#lvSeek .lvbehind{width:100%;text-align:center;color:#BFD0EE;font-size:12px}
+.sheet.split #lvSeek{display:none}
 #lvBtns h4{color:#BFD0EE;font-size:13px;text-align:center;margin:0 0 8px;font-weight:600}
 #lvBtns .row{display:flex;gap:8px}
 #lvBtns button{flex:1 1 0;min-width:0;border:1.5px solid rgba(255,255,255,.4);border-radius:12px;padding:8px 4px;color:#fff;direction:rtl}
@@ -902,7 +908,7 @@ function closeLive(){
   closePages(); $("#liveBox")?.remove(); document.body.style.overflow = ""; LV = null;
 }
 function liveUnavailable(){
-  $("#liveVid").className = ""; 
+  $("#liveVid").className = ""; if ($("#lvSeek")) $("#lvSeek").hidden = true;
   $("#liveVid").innerHTML = `<div class="lvmsg"><b>The live stream isn't on right now.</b><br>It shows here when the Rav is giving a shiur.<br>
     <button id="lvRetry">${icon("live")}Try again</button>
     <div class="apps"><a href="${STORE.ios}" target="_blank" rel="noopener">${icon("apple")}iPhone app</a><a href="${STORE.android}" target="_blank" rel="noopener">${icon("gplay")}Android app</a></div></div>`;
@@ -951,13 +957,35 @@ function showLive(){
   const box = document.createElement("div"); box.id = "liveBox";
   box.innerHTML = `<div class="sheet vid" id="liveSheet">
     <div class="hd"><button class="ib" id="lvBack" aria-label="Back">${icon("arrow")}</button><b>Live Stream</b><button class="lvmode" id="lvMode"></button></div>
-    <div class="body"><div id="liveVid"></div><div id="lvBtns"></div></div></div>`;
+    <div class="body"><div id="liveVid"></div><div id="lvSeek" hidden></div><div id="lvBtns"></div></div></div>`;
   document.body.appendChild(box); document.body.style.overflow = "hidden";
   const el = document.createElement("video"); el.controls = true; el.playsInline = true; el.autoplay = true;
   LV = {el, mode:"video", hls:null};
   $("#lvBack").onclick = closeLive;
   $("#lvMode").onclick = () => liveStart(LV.mode==="audio" ? "video" : "audio");
-  liveStart("video"); liveButtons();
+  liveStart("video"); liveButtons(); liveSeekBar();
+}
+/* Rewind during the live shiur: the server keeps up to 3 hours of it. */
+function lvRange(){ const s = LV?.el.seekable; return s && s.length ? [s.start(0), s.end(s.length-1)] : null; }
+function lvClock(t){ t = Math.max(0, Math.round(t)); const h = Math.floor(t/3600), m = Math.floor(t/60)%60, x = String(t%60).padStart(2,"0"); return h ? `${h}:${String(m).padStart(2,"0")}:${x}` : `${m}:${x}`; }
+function liveSeekBar(){
+  const bar = $("#lvSeek"), el = LV.el;
+  bar.innerHTML = `<button data-a="start">⏮ From the beginning</button><button data-a="-30">⟲ 30</button><button data-a="30">30 ⟳</button><button data-a="live" class="golive">● Live</button><div class="lvbehind" id="lvBehind"></div>`;
+  bar.onclick = ev => {
+    const b = ev.target.closest("button[data-a]"), r = lvRange(); if (!b || !r || !LV) return;
+    const a = b.dataset.a, live = (LV.hls && LV.hls.liveSyncPosition) || r[1] - 9;
+    let t = a==="start" ? r[0] + 1 : a==="live" ? live : el.currentTime + (+a);
+    el.currentTime = Math.min(Math.max(t, r[0] + 1), live);
+    el.play().catch(()=>{}); show();
+  };
+  const show = () => {
+    if (!LV || LV.el !== el) return;
+    const r = lvRange(); bar.hidden = !r || r[1] - r[0] < 20; if (bar.hidden) return;
+    const behind = r[1] - el.currentTime - 12, from = el.currentTime - r[0];
+    bar.querySelector(".golive").classList.toggle("behind", behind > 15);
+    $("#lvBehind").textContent = behind > 15 ? `${lvClock(from)} from the start · ${lvClock(behind)} behind live` : `Watching live · ${lvClock(from)} since the start`;
+  };
+  el.addEventListener("timeupdate", show); el.addEventListener("playing", show);
 }
 $("#liveBtn").onclick = showLive;
 
