@@ -21,14 +21,14 @@
   {
    "key": "mishlei",
    "label": "משלי",
-   "title": "פרק ג' כ\"ז – ל\"ה",
+   "title": "פרק ד' א' – י'",
    "note": "ממשיך מהשיעור האחרון",
    "pg": {
     "src": "pdf",
     "url": "https://pub-0da52a6f8235473d8cadbe96c07ca5ae.r2.dev/mishlei/{p}.pdf",
-    "from": 74,
-    "to": 77,
-    "lbl": "פרק ג' כ\"ז – ל\"ה"
+    "from": 78,
+    "to": 81,
+    "lbl": "פרק ד' א' – י'"
    }
   },
   {
