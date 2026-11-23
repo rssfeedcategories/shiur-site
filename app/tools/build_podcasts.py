@@ -18,7 +18,7 @@ from xml.sax.saxutils import escape
 
 SITE = "https://rssfeedcategories.github.io/shiur-site/app/podcasts/"
 OUT = "podcasts"
-AUTHOR = "Rabbi Gips - Birkas Avrohom"
+AUTHOR = "Rabbi Yitzchok Zalmen Gips - Birkas Avrohom"
 GEMARA = "שיעור יומי - גמרא"
 
 # English slugs for the file names (feed URLs). Unknown names get a short hash.
@@ -96,8 +96,8 @@ def main():
         eps.sort(key=lambda e: e.get("d") or "", reverse=True)       # newest first
         cover = f"covers/{slug}.jpg"
         img = SITE + cover if os.path.exists(os.path.join(OUT, cover)) else default_img
-        full_title = f"{title} | הרב גיפס - ברכת אברהם"
-        desc = f"שיעורי הרב גיפס שליט\"א - {title}. ברכת אברהם."
+        full_title = f"{title} | הרב יצחק זלמן גיפס שליט\"א"
+        desc = f"שיעורי הרב יצחק זלמן גיפס שליט\"א - {title}. קהל ברכת אברהם."
         items = []
         for e in eps:
             dur = secs(e.get("dur"))
@@ -146,7 +146,7 @@ def main():
     if not os.path.exists(p) or open(p, encoding="utf8").read() != idx:
         open(p, "w", encoding="utf8").write(idx)
     rows = "\n".join(
-        f'<tr><td><img src="{html.escape(f["cover"])}" width="56" height="56"></td>'
+        f'<tr><td><img src="{html.escape(f["cover"])}" style="width:56px;height:56px"></td>'
         f'<td dir="rtl"><b>{html.escape(f["title"])}</b><br><small>{f["episodes"]} שיעורים · {f["newest"]}</small></td>'
         f'<td><a href="{html.escape(f["url"])}">{html.escape(f["url"])}</a></td></tr>' for f in index)
     page = ("<!doctype html><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"

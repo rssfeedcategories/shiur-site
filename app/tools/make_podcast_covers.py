@@ -47,12 +47,12 @@ def cover(title, out):
     d = ImageDraw.Draw(img)
     d.rectangle([28, 28, S - 29, S - 29], outline=GOLD, width=14)
     d.rectangle([58, 58, S - 59, S - 59], outline=GOLD, width=3)
-    logo = Image.open(LOGO).convert("RGB").resize((560, 560), Image.LANCZOS)
+    logo = Image.open(LOGO).convert("RGB").resize((480, 480), Image.LANCZOS)
     mask = Image.new("L", logo.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle([0, 0, 559, 559], radius=60, fill=255)
-    img.paste(logo, ((S - 560) // 2, 110), mask)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, 479, 479], radius=52, fill=255)
+    img.paste(logo, ((S - 480) // 2, 105), mask)
     ls = lines_for(title)
-    y = 730 if len(ls) == 1 else 700
+    y = 690 if len(ls) == 1 else 625
     for ln in ls:
         f = fit(d, ln, S - 200, 190 if len(ls) == 1 else 150)
         w = d.textlength(ln, font=f, direction="rtl")
@@ -60,10 +60,11 @@ def cover(title, out):
         d.text(((S - w) / 2, y), ln, font=f, fill=GOLD, direction="rtl",
                stroke_width=3, stroke_fill=NAVY)
         y += h + 30
-    sub = 'הרב גיפס שליט"א'
-    f = ImageFont.truetype(FONT, 90)
-    w = d.textlength(sub, font=f, direction="rtl")
-    d.text(((S - w) / 2, S - 230), sub, font=f, fill=WHITE, direction="rtl")
+    # the Rav's name on 2 lines (Izzy, Nov 23)
+    f = ImageFont.truetype(FONT, 82)
+    for sub, sy in (("הרב יצחק זלמן גיפס", S - 330), ('שליט"א', S - 225)):
+        w = d.textlength(sub, font=f, direction="rtl")
+        d.text(((S - w) / 2, sy), sub, font=f, fill=WHITE, direction="rtl")
     img.save(out, "JPEG", quality=88)
 
 
