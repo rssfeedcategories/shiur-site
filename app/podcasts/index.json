@@ -1,0 +1,236 @@
+[
+ {
+  "name": "משנה ברורה",
+  "title": "משנה ברורה",
+  "slug": "mishna-berura",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/mishna-berura.xml",
+  "episodes": 1045,
+  "newest": "2026-11-22",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/mishna-berura.jpg"
+ },
+ {
+  "name": "ספר משלי",
+  "title": "ספר משלי - מחזור א'",
+  "slug": "mishlei-machzor-1",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/mishlei-machzor-1.xml",
+  "episodes": 289,
+  "newest": "2026-09-10",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/mishlei-machzor-1.jpg"
+ },
+ {
+  "name": "כד הקמח לרבינו בחיי",
+  "title": "כד הקמח לרבינו בחיי",
+  "slug": "kad-hakemach",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/kad-hakemach.xml",
+  "episodes": 270,
+  "newest": "2025-01-20",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/kad-hakemach.jpg"
+ },
+ {
+  "name": "מסכת שבת",
+  "title": "מסכת שבת - שיעור יומי גמרא",
+  "slug": "gemara-shabbos",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-shabbos.xml",
+  "episodes": 211,
+  "newest": "2024-12-20",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-shabbos.jpg"
+ },
+ {
+  "name": "מסכת קידושין",
+  "title": "מסכת קידושין - שיעור יומי גמרא",
+  "slug": "gemara-kiddushin",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-kiddushin.xml",
+  "episodes": 180,
+  "newest": "2023-10-13",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-kiddushin.jpg"
+ },
+ {
+  "name": "חובות הלבבות",
+  "title": "חובות הלבבות",
+  "slug": "chovos-halevavos",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/chovos-halevavos.xml",
+  "episodes": 169,
+  "newest": "2023-07-28",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/chovos-halevavos.jpg"
+ },
+ {
+  "name": "תפילה",
+  "title": "תפילה",
+  "slug": "tefillah",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/tefillah.xml",
+  "episodes": 166,
+  "newest": "2022-08-05",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/tefillah.jpg"
+ },
+ {
+  "name": "מסכת פסחים",
+  "title": "מסכת פסחים - שיעור יומי גמרא",
+  "slug": "gemara-pesachim",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-pesachim.xml",
+  "episodes": 161,
+  "newest": "2026-03-05",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-pesachim.jpg"
+ },
+ {
+  "name": "מסכת עירובין",
+  "title": "מסכת עירובין - שיעור יומי גמרא",
+  "slug": "gemara-eruvin",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-eruvin.xml",
+  "episodes": 145,
+  "newest": "2025-07-22",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-eruvin.jpg"
+ },
+ {
+  "name": "ספר הכוזרי",
+  "title": "ספר הכוזרי",
+  "slug": "kuzari",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/kuzari.xml",
+  "episodes": 130,
+  "newest": "2023-01-18",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/kuzari.jpg"
+ },
+ {
+  "name": "ד\"ת על הפרשה",
+  "title": "ד\"ת על הפרשה",
+  "slug": "dvar-torah-parsha",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/dvar-torah-parsha.xml",
+  "episodes": 113,
+  "newest": "2026-11-20",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/dvar-torah-parsha.jpg"
+ },
+ {
+  "name": "שערי תשובה",
+  "title": "שערי תשובה",
+  "slug": "shaarei-teshuva",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/shaarei-teshuva.xml",
+  "episodes": 111,
+  "newest": "2026-09-24",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/shaarei-teshuva.jpg"
+ },
+ {
+  "name": "מסכת יומא",
+  "title": "מסכת יומא - שיעור יומי גמרא",
+  "slug": "gemara-yoma",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-yoma.xml",
+  "episodes": 109,
+  "newest": "2026-09-30",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-yoma.jpg"
+ },
+ {
+  "name": "עניני שבת קודש",
+  "title": "עניני שבת קודש",
+  "slug": "inyanei-shabbos",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/inyanei-shabbos.xml",
+  "episodes": 109,
+  "newest": "2023-07-03",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/inyanei-shabbos.jpg"
+ },
+ {
+  "name": "ספר קהלת",
+  "title": "ספר קהלת",
+  "slug": "koheles",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/koheles.xml",
+  "episodes": 105,
+  "newest": "2025-04-09",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/koheles.jpg"
+ },
+ {
+  "name": "שמירת הלשון",
+  "title": "שמירת הלשון",
+  "slug": "shmiras-halashon",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/shmiras-halashon.xml",
+  "episodes": 94,
+  "newest": "2023-10-17",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/shmiras-halashon.jpg"
+ },
+ {
+  "name": "מסכת ברכות",
+  "title": "מסכת ברכות - שיעור יומי גמרא",
+  "slug": "gemara-brachos",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-brachos.xml",
+  "episodes": 89,
+  "newest": "2024-02-15",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-brachos.jpg"
+ },
+ {
+  "name": "הכנה ליו\"ט",
+  "title": "הכנה ליו\"ט",
+  "slug": "hachana-yom-tov",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/hachana-yom-tov.xml",
+  "episodes": 68,
+  "newest": "2026-09-23",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/hachana-yom-tov.jpg"
+ },
+ {
+  "name": "חפץ חיים",
+  "title": "חפץ חיים",
+  "slug": "chofetz-chaim",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/chofetz-chaim.xml",
+  "episodes": 57,
+  "newest": "2023-05-03",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/chofetz-chaim.jpg"
+ },
+ {
+  "name": "שיעור כללי",
+  "title": "שיעור כללי",
+  "slug": "shiur-klali",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/shiur-klali.xml",
+  "episodes": 40,
+  "newest": "2026-11-22",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/shiur-klali.jpg"
+ },
+ {
+  "name": "מסכת שקלים",
+  "title": "מסכת שקלים - שיעור יומי גמרא",
+  "slug": "gemara-shekalim",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-shekalim.xml",
+  "episodes": 32,
+  "newest": "2026-04-23",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-shekalim.jpg"
+ },
+ {
+  "name": "מסכת סוכה",
+  "title": "מסכת סוכה - שיעור יומי גמרא",
+  "slug": "gemara-sukkah",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-sukkah.xml",
+  "episodes": 30,
+  "newest": "2026-11-23",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-sukkah.jpg"
+ },
+ {
+  "name": "ספר משלי - מחזור ב'",
+  "title": "ספר משלי - מחזור ב'",
+  "slug": "mishlei-machzor-2",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/mishlei-machzor-2.xml",
+  "episodes": 30,
+  "newest": "2026-11-22",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/mishlei-machzor-2.jpg"
+ },
+ {
+  "name": "מבחר הפנינים",
+  "title": "מבחר הפנינים",
+  "slug": "mivchar-hapeninim",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/mivchar-hapeninim.xml",
+  "episodes": 22,
+  "newest": "2026-07-21",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/mivchar-hapeninim.jpg"
+ },
+ {
+  "name": "general",
+  "title": "שונות",
+  "slug": "shonos",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/shonos.xml",
+  "episodes": 11,
+  "newest": "2026-10-19",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/shonos.jpg"
+ },
+ {
+  "name": "שלום בית",
+  "title": "שלום בית",
+  "slug": "shalom-bayis",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/shalom-bayis.xml",
+  "episodes": 5,
+  "newest": "2026-01-31",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/shalom-bayis.jpg"
+ }
+]
