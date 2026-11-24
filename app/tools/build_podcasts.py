@@ -97,7 +97,7 @@ def main():
         cover = f"covers/{slug}.jpg"
         img = SITE + cover if os.path.exists(os.path.join(OUT, cover)) else default_img
         full_title = f"{title} | הרב יצחק זלמן גיפס שליט\"א"
-        desc = f"שיעורי הרב יצחק זלמן גיפס שליט\"א - {title}. קהל ברכת אברהם."
+        desc = f"שיעורי הרב יצחק זלמן גיפס שליט\"א - {title}."
         items = []
         for e in eps:
             dur = secs(e.get("dur"))
