@@ -4,8 +4,8 @@
   "title": "משנה ברורה",
   "slug": "mishna-berura",
   "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/mishna-berura.xml",
-  "episodes": 1045,
-  "newest": "2026-11-22",
+  "episodes": 1046,
+  "newest": "2026-11-23",
   "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/mishna-berura.jpg"
  },
  {
@@ -189,6 +189,15 @@
   "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-shekalim.jpg"
  },
  {
+  "name": "ספר משלי - מחזור ב'",
+  "title": "ספר משלי - מחזור ב'",
+  "slug": "mishlei-machzor-2",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/mishlei-machzor-2.xml",
+  "episodes": 31,
+  "newest": "2026-11-23",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/mishlei-machzor-2.jpg"
+ },
+ {
   "name": "מסכת סוכה",
   "title": "מסכת סוכה - שיעור יומי גמרא",
   "slug": "gemara-sukkah",
@@ -196,15 +205,6 @@
   "episodes": 30,
   "newest": "2026-11-23",
   "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-sukkah.jpg"
- },
- {
-  "name": "ספר משלי - מחזור ב'",
-  "title": "ספר משלי - מחזור ב'",
-  "slug": "mishlei-machzor-2",
-  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/mishlei-machzor-2.xml",
-  "episodes": 30,
-  "newest": "2026-11-22",
-  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/mishlei-machzor-2.jpg"
  },
  {
   "name": "מבחר הפנינים",
