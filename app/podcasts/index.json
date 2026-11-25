@@ -180,6 +180,15 @@
   "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/shiur-klali.jpg"
  },
  {
+  "name": "מסכת סוכה",
+  "title": "מסכת סוכה - שיעור יומי גמרא",
+  "slug": "gemara-sukkah",
+  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-sukkah.xml",
+  "episodes": 32,
+  "newest": "2026-11-25",
+  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-sukkah.jpg"
+ },
+ {
   "name": "ספר משלי - מחזור ב'",
   "title": "ספר משלי - מחזור ב'",
   "slug": "mishlei-machzor-2",
@@ -196,15 +205,6 @@
   "episodes": 32,
   "newest": "2026-04-23",
   "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-shekalim.jpg"
- },
- {
-  "name": "מסכת סוכה",
-  "title": "מסכת סוכה - שיעור יומי גמרא",
-  "slug": "gemara-sukkah",
-  "url": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/gemara-sukkah.xml",
-  "episodes": 31,
-  "newest": "2026-11-24",
-  "cover": "https://rssfeedcategories.github.io/shiur-site/app/podcasts/covers/gemara-sukkah.jpg"
  },
  {
   "name": "מבחר הפנינים",
